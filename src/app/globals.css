@@ -1,0 +1,70 @@
+/* Design tokens. Phase 2 drives some of these from runtime state, which is why
+   they are CSS custom properties rather than preprocessor variables. */
+:root {
+  --bg: #0a0c0b;
+  --panel: #111514;
+  --line: #232a26;
+  --fg: #dbe4dc;
+  --muted: #7f8b81;
+  --accent: #5de08a;
+  --warn: #e0c15d;
+  --danger: #e07b5d;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius: 6px;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.shell {
+  max-width: 62ch;
+  margin: 0 auto;
+  padding: 14vh var(--space-6) var(--space-8);
+}
+
+.wordmark {
+  margin: 0 0 var(--space-4);
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.lede {
+  margin: 0 0 var(--space-3);
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+}
+
+.hint::before {
+  content: "> ";
+  color: var(--accent);
+}
