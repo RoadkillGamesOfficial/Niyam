@@ -1,6 +1,6 @@
 # Project Knowledge: Local-First Discipline & Momentum Companion
 
-Working product name: TBD (candidates: Consto, Constantia, Kata, Niyam, Ordo, Sudor, Meliora).
+Working product name: Niyam (display name only; see `docs/decisions.md`).
 
 ## What this is
 
@@ -9,6 +9,7 @@ A personal productivity companion for ONE user, running entirely on one laptop. 
 ## Current phase
 
 **Phase 1: Local Foundation.** Local Next.js app, local SQLite database, basic schema for tasks and sessions, manual task entry and list.
+(Decisions settled 2026-11-05: `node:sqlite`, `node:test`, plain CSS. See `docs/decisions.md`.)
 Exit criteria: a task entered in the UI appears in the local database file and displays back correctly.
 
 Do NOT build features from later phases (check-in timer, XP and combos, AI, insights, habits, screen time import) unless explicitly asked. Later phases:
