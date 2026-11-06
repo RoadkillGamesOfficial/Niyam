@@ -5,8 +5,33 @@ Phase 1 under way. Commit 0 (docs baseline) and commit 1 (scaffold) are the
 first two steps; the rest of the commit plan below is unchanged. App runs with
 `npm run dev`.
 
-Open technical risk: Next/Turbopack resolving `node:sqlite` is not yet proven.
-Spike it at commit 2; fall back to better-sqlite3 (ask first) only if it fails.
+Open technical risk resolved at commit 2: Turbopack bundles `node:sqlite` fine (a
+temporary route importing the data layer built cleanly), so better-sqlite3 stays
+an untested fallback.
+
+Progress: `226eb68` docs baseline, `9c9afce` scaffold, `a0ff36d` SQLite
+connection + migration runner. `npm run build` and `npm run dev` both verified;
+`/` returns 200 with the title `Niyam`.
+
+Details worth keeping:
+- Next dev picked a free port on this machine (58016) rather than 3000; read the
+  startup banner for the real port before curling it.
+- First `next build` rewrote `tsconfig.json` for us: `jsx` became `react-jsx`
+  and `.next/dev/types/**/*.ts` was added to `include`. The
+  `allowImportingTsExtensions` setting survived, which the test setup depends on.
+- `package.json` has no `test` script yet on purpose: a runner with zero test
+  files cannot pass, so it arrives with the first real tests at commit 3.
+- Next telemetry is on by default. It is dev/build only, not runtime, but decide
+  whether to disable it (`NEXT_TELEMETRY_DISABLED=1`).
+- ESLint was left out deliberately (dependency rule); add on request.
+- Commit 2 was checked against a throwaway DB: tables created, WAL and foreign
+  keys on, insert/read-back, and FK, CHECK and UNIQUE each rejected bad rows;
+  reopening kept the data and did not re-run `001_init.sql`.
+- Migrations are `.sql` files in `migrations/`, read at runtime from
+  `process.cwd()`. That assumes dev, start and tests all run from the project
+  root, which the npm scripts do.
+- `node --test` on `.ts` warns MODULE_TYPELESS_PACKAGE_JSON unless package.json
+  sets `"type": "module"`. It is harmless; decide at commit 3.
 
 ## Settled approvals (2026-11-05, details in docs/decisions.md)
 - SQLite driver: `node:sqlite`. Verified here (Node v24.21.0): DatabaseSync,
