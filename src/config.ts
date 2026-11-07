@@ -9,4 +9,8 @@ export const CONFIG = {
     directory: "data",
     filename: "discipline.db", // never contains the product name; see docs/decisions.md
   },
+  tasks: {
+    // Long titles are hard to scan, so the input and the data layer share a cap.
+    maxTitleLength: 200,
+  },
 } as const;
