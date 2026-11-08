@@ -1,8 +1,8 @@
 # Visual design: warm, cozy, Stardew-inspired
 
-Status: **decided 2026-11-08, not yet implemented.** Phase 1 shipped with
-placeholder terminal styling; `docs/phase-1-foundation.md` said the full design
-would come later. This file is that design.
+Status: **implemented 2026-11-08.** Phase 1 shipped with placeholder terminal
+styling; this file is the design that replaced it. See "Shipped values" at the
+end for the tokens and measurements that actually landed.
 
 Scope of this direction: **visual only.** No behaviour, data or copy changes are
 implied. Every string stays in `src/copy.ts`.
@@ -201,3 +201,40 @@ No new dependencies, no images, no runtime font fetch.
   a laptop screen at 100%.
 - A dusk theme is in the PDD backlog, not this pass. Tokens should make it cheap
   later, nothing more.
+
+## Shipped values (2026-11-08)
+
+Landed in `src/app/globals.css`, with class names unchanged so no component had
+to move. Three draft hexes were darkened to meet their own contrast targets:
+
+| Token | Draft | Shipped | Why |
+|---|---|---|---|
+| `--leaf-500` | `#5b8c3e` | `#47712f` | parchment text on leaf was 3.76:1; now 5.39:1 |
+| `--gold-400` | `#e3b04b` | `#a8781f` | focus ring was 1.71:1 against parchment; now 3.36:1 |
+| `--sky-500` | `#5d87a6` | `#46688a` | pivot text on parchment was 3.61:1; now 5.49:1 |
+
+The decorative gold (energy bar, notice pin) keeps the light draft as
+`--gold-300: #e3b04b`; only text and focus use the darker `--gold-400`.
+
+Measured pairs (WCAG 2.1 relative luminance):
+
+| Pair | Ratio | Target |
+|---|---|---|
+| `--ink-900` on `--parchment-50` | 13.41 | ≥ 7 (body) |
+| `--ink-600` on `--parchment-100` | 5.69 | ≥ 4.5 (muted) |
+| `--parchment-50` on `--leaf-500` | 5.39 | ≥ 4.5 (button text) |
+| `--parchment-50` on `--wood-700` | 7.67 | ≥ 4.5 (sign) |
+| `--gold-400` on `--parchment-100` | 3.36 | ≥ 3 (focus ring) |
+| `--berry-500` on `--parchment-50` | 4.61 | ≥ 4.5 (error text) |
+| `--sky-500` on `--parchment-50` | 5.49 | ≥ 4.5 (pivot) |
+| `--ink-900` on `--parchment-200` | 10.51 | ≥ 4.5 (input text) |
+
+Other shipped decisions: the task glyph is a 22px seed button that fills leaf
+and draws a check with two borders when pressed, so the `[x]` copy marks are no
+longer rendered (they stay in `src/copy.ts` as labels). The `> ` prefixes before
+hints and empty states are gone. State is still never colour-only: done rows
+keep their strikethrough, and the seed has a drawn check.
+
+Not verified in this pass: 200% zoom and the 320/768/1280px width sweep were not
+run, because the only browser here is the headless preview; the layout is single
+column and flex-wrap based, so the risk is low but it is unverified.

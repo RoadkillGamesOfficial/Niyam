@@ -323,6 +323,32 @@ weekday hint reads "Days as numbers, Sunday is 0. Try 1,3,5." Wording decisions
 are recorded in `docs/decisions.md`. One open item needs the owner: the product
 name and tagline.
 
+## Design revamp (2026-11-08)
+
+The warm, Stardew-inspired look from `docs/design.md` is now the shipped UI,
+replacing the Phase 1 terminal styling. Visual only: no behaviour, schema or
+copy changes, no dependencies, no images, no runtime font fetch.
+
+What changed in `src/app/globals.css`: a parchment palette with a daylight
+vignette and one grain layer; a rounded type scale (14/17/20/26/34px) with
+tabular numerals; panels as wooden cards; the wordmark hanging on a sign and the
+day line on a ribbon; tasks as slips with a 22px seed toggle that fills leaf and
+draws a check; leaf pill buttons with a darker bottom edge and a press offset;
+recessed parchment inputs; the check-in as a pinned notice board; a warm scrim
+overlay; a leaf heat map; and a `prefers-reduced-motion` block that removes all
+motion.
+
+Three draft hexes were darkened so they meet their own targets: leaf
+`#5b8c3e` → `#47712f` (5.39:1 for button text), gold `#e3b04b` → `#a8781f`
+(3.36:1 for the focus ring), sky `#5d87a6` → `#46688a` (5.49:1). The measured
+pair table is in `docs/design.md` under "Shipped values".
+
+Commits: `905bc4d` (palette, frame, sign) and the slips/motion commit that
+follows it, both `design revamp:` prefixed. `npm test` and `npm run build` pass.
+
+Not verified: 200% zoom and the 320/768/1280px sweep — the only browser in this
+session is the headless preview, so those need a human pass.
+
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;
 tunables in config; all user-facing strings in `src/copy.ts`; update
