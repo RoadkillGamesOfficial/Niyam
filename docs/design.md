@@ -235,6 +235,13 @@ longer rendered (they stay in `src/copy.ts` as labels). The `> ` prefixes before
 hints and empty states are gone. State is still never colour-only: done rows
 keep their strikethrough, and the seed has a drawn check.
 
-Not verified in this pass: 200% zoom and the 320/768/1280px width sweep were not
-run, because the only browser here is the headless preview; the layout is single
-column and flex-wrap based, so the risk is low but it is unverified.
+Verified on 2026-11-08 in the local preview: no horizontal overflow at 320,
+768 and 1280px (document `scrollWidth` equals `clientWidth` in each case), and
+at 640px, which is what a 1280px window becomes at 200% zoom. The pinned
+check-in board and the firm overlay were rendered at 320, 640 and 1280px; the
+overlay card stays inside a 320x480 viewport (top 56px, bottom 424px), so a
+short zoomed window does not clip it. Captures: `docs/design-revamp-320.png`,
+`docs/design-revamp-1280.png`, `docs/design-revamp-overlay.png`.
+
+One defect was found this way and fixed: the plan form's Add button overflowed
+its card until the row was allowed to wrap.

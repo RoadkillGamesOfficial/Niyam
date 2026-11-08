@@ -346,8 +346,12 @@ pair table is in `docs/design.md` under "Shipped values".
 Commits: `905bc4d` (palette, frame, sign) and the slips/motion commit that
 follows it, both `design revamp:` prefixed. `npm test` and `npm run build` pass.
 
-Not verified: 200% zoom and the 320/768/1280px sweep — the only browser in this
-session is the headless preview, so those need a human pass.
+Verified in one preview tab: no horizontal overflow at 320, 768 and 1280px, nor
+at 640px (a 1280px window at 200% zoom). The check-in board and the firm overlay
+render inside the viewport down to 320x480. Captures are in
+`docs/design-revamp-320.png`, `docs/design-revamp-1280.png` and
+`docs/design-revamp-overlay.png`. One defect surfaced and was fixed: the plan
+form's Add button overflowed its card.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;
