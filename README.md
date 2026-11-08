@@ -39,8 +39,8 @@ npm run build   # production build, which also runs the type check
 
 - The database layer runs on the Node runtime only: never import `src/db/` from
   a `"use client"` file or run it on the edge runtime.
-- Next.js collects anonymous telemetry during `npm run dev` and `npm run build`.
-  It is the only outbound request the project makes and it never happens while
-  you use the app. To turn it off, set `NEXT_TELEMETRY_DISABLED=1` in your shell
-  (`set NEXT_TELEMETRY_DISABLED=1` in Windows `cmd`, `$env:NEXT_TELEMETRY_DISABLED=1`
-  in PowerShell).
+- Next.js would collect anonymous telemetry during `dev` and `build`, so the
+  npm scripts run it through `scripts/next.mjs`, which sets
+  `NEXT_TELEMETRY_DISABLED=1` before starting the CLI. Nothing the project runs
+  makes an outbound request; the wrapper exists because an inline `VAR=1` prefix
+  does not work in Windows `cmd`.

@@ -8,7 +8,7 @@ Verified end to end on 2026-11-08 with the dev server on port 3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
 killed and restarted the dev server → the task and its done state were still
-there. `npm test` (10 tests) and `npm run build` both pass.
+there. `npm test` (12 tests) and `npm run build` both pass.
 
 Commits (each builds and passes tests, except 0–1 which predate the test script):
 
@@ -19,7 +19,8 @@ Commits (each builds and passes tests, except 0–1 which predate the test scrip
 | 2 | `a0ff36d` | SQLite connection + migration runner |
 | 3 | `156ecb8` | task and day data access + tests |
 | 4 | `8aaa68a` | add/list/done page |
-| 5 | (this commit) | README, handoff, decisions |
+| 5 | `9f6dfe1` | README, handoff, decisions |
+| 6 | (this commit) | reviewer pass fixes and record |
 
 Commits 0–2 are the unsigned rewrites; the remote copies (`76ae5e8`,
 `a912e13`) are content-identical. `git push` fast-forwards when asked.
@@ -68,10 +69,11 @@ npm run build    # production build + type check
 - `node --test` prints `MODULE_TYPELESS_PACKAGE_JSON` for each test file because
   `package.json` has no `"type": "module"`. Harmless; adding `type: module` would
   silence it and is a Phase 2 candidate.
-- Next telemetry is on for `dev` and `build` only; it is the project's only
-  outbound request. `NEXT_TELEMETRY_DISABLED=1` turns it off. Documented in the
-  README instead of hard-coded, because an inline env var is not portable across
-  Windows shells.
+- Next telemetry is forced off by `scripts/next.mjs`, which every npm script
+  runs: it sets `NEXT_TELEMETRY_DISABLED=1` and then loads the Next CLI. The
+  wrapper exists because an inline `VAR=1` prefix does not work in Windows
+  `cmd`. `node scripts/next.mjs telemetry status` reports "No data will be
+  collected from your machine".
 - `next build` prints one Turbopack warning about `process.cwd()` in
   `databasePath()` tracing the project. Benign for a local app; relevant only if
   this is ever deployed.
@@ -95,6 +97,42 @@ npm run build    # production build + type check
 - Local timezone defines "today"; there is no setting for it yet.
 - Task order is creation order (`created_at`, then `id`), so a done task keeps
   its place instead of jumping to the bottom.
+
+## Reviewer pass (2026-11-08)
+Run as `docs/roles/reviewer.md` requires, against the code at `9f6dfe1` plus the
+fixes in this commit. Exercised on a running dev server with an empty
+database: empty state, adding a task, refresh, marking done, reopening, browser
+restart with the server killed and started again, and bad input (blank title,
+spaces only, a 250-character title forced past the `maxLength` attribute, an
+HTML/script payload, and a SQL `'; DROP TABLE task;--` payload). Tests and build
+were rerun at HEAD.
+
+- **Blockers:** none.
+- **Should fix (fixed here):**
+  1. Telemetry was still on for `dev` and `build` (anonymous ID was written to
+     `~/.config/nextjs-nodejs/config.json`), which contradicts "no telemetry"
+     in `docs/knowledge.md`. Fixed with `scripts/next.mjs`, which forces
+     `NEXT_TELEMETRY_DISABLED=1` without adding a dependency and without
+     breaking Windows shells.
+  2. The task checkbox glyphs and the day separator were literals inside
+     `src/app/page.tsx`, against "all UI strings in one central copy file".
+     Moved to `COPY.home.taskDoneMark`, `taskOpenMark` and `daySeparator`.
+- **Suggestions (not done):**
+  - `localDateString` now has tests; if "today" ever becomes configurable, those
+    are the tests to extend.
+  - Server actions rely on Next's built-in origin check rather than an explicit
+    CSRF token. Acceptable for a single-user local app; revisit if the app ever
+    binds to a network interface.
+  - The Turbopack trace warning about `process.cwd()` stays documented rather
+    than silenced, because it only matters for deployment.
+- **What works well:** post/redirect/get makes refresh idempotent; the data layer
+  is plain functions over a connection, so every test runs against a temp file
+  and never touches `data/`; hostile titles are stored literally and rendered as
+  text (React escapes them, SQLite is only reached through prepared statements);
+  the `task` table survived the SQL payload attempt and still had one row.
+
+Verdict: **ready to proceed to Phase 2.** Phase 1 is in scope, its acceptance
+criteria pass on a running app, and nothing outside the phase was built.
 
 ## Open questions before Phase 2
 - Run the reviewer role (`docs/roles/reviewer.md`) as the phase doc requires.

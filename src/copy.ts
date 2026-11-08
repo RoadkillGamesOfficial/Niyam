@@ -11,6 +11,7 @@ export const COPY = {
     title: PRODUCT_NAME,
     lede: "A quiet local workspace for getting things done.",
     dayLabel: "Today",
+    daySeparator: "·",
     formLabel: "Add a task",
     titlePlaceholder: "The smallest next thing",
     addButton: "Add",
@@ -18,5 +19,7 @@ export const COPY = {
     empty: "Nothing yet. Add the smallest next thing.",
     markDone: "Mark done",
     markOpen: "Mark open",
+    taskDoneMark: "[x]",
+    taskOpenMark: "[ ]",
   },
 };

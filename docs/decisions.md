@@ -149,3 +149,38 @@ first visit means there is no startup step or background job.
 
 What it rules out: a task cannot be entered for a day other than today yet, and
 changing the machine's timezone changes which day new tasks land in.
+
+## 2026-11-08 — Reviewer pass: telemetry off, copy centralized
+
+### Telemetry is disabled for local builds, not just opted out of in docs
+
+Decision: every npm script runs Next through `scripts/next.mjs`, a six-line
+wrapper that sets `NEXT_TELEMETRY_DISABLED=1` and then loads the Next CLI.
+
+Why: the reviewer pass found Next had written an anonymous ID and salt to
+`~/.config/nextjs-nodejs/config.json` and would send usage events on `dev` and
+`build`. `docs/knowledge.md` says no telemetry and no outbound calls, and the
+earlier answer (document the opt-out in the README) left the default on.
+`node scripts/next.mjs telemetry status` now prints "No data will be collected
+from your machine"; the unwrapped CLI still prints that it is enabled.
+
+Why a wrapper rather than an env prefix: `NEXT_TELEMETRY_DISABLED=1 next build`
+does not work in Windows `cmd`, and `cross-env` would be a new dependency. The
+wrapper is plain Node with no packages.
+
+Rules that follow:
+- Run the app through `npm run dev` / `npm run build` / `npm start`, not by
+  calling `next` directly, or telemetry comes back for that run.
+- A new dependency is still required before adding anything else of this kind.
+
+### Every visible string, including glyphs, lives in `src/copy.ts`
+
+Decision: the checkbox marks (`[ ]`, `[x]`) and the day separator (`·`) moved
+from `src/app/page.tsx` into `COPY.home`, alongside the labels they belong to.
+
+Why: the phase doc says all UI strings live in one central copy file, and the
+reviewer found three literals that had been left as inline JSX. They are exactly
+the kind of thing the voice writer may want to change later.
+
+What it rules out: no UI text, punctuation glyphs included, is written directly
+in a component.

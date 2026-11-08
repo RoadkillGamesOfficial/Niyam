@@ -21,7 +21,7 @@ export default function Home() {
         <h1 className="wordmark">{COPY.home.title}</h1>
         <p className="lede">{COPY.home.lede}</p>
         <p className="hint">
-          {COPY.home.dayLabel} · {day.date}
+          {COPY.home.dayLabel} {COPY.home.daySeparator} {day.date}
         </p>
       </header>
 
@@ -65,7 +65,7 @@ export default function Home() {
                       aria-label={done ? COPY.home.markOpen : COPY.home.markDone}
                       aria-pressed={done}
                     >
-                      {done ? "[x]" : "[ ]"}
+                      {done ? COPY.home.taskDoneMark : COPY.home.taskOpenMark}
                     </button>
                   </form>
                   <span className="task-title">{task.title}</span>
