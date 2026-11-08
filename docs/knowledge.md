@@ -9,7 +9,7 @@ A personal productivity companion for ONE user, running entirely on one laptop. 
 ## Current phase
 
 **Phase 1: Local Foundation.** Local Next.js app, local SQLite database, basic schema for tasks and sessions, manual task entry and list.
-Phase 1 is complete and reviewed (2026-11-08). The shipped UI uses placeholder terminal styling; the next work block is the visual restyle described in `docs/design.md`, which comes before Phase 2's screens.
+**Phase 2: Game Loop** is implemented (2026-11-08): manual plan with profiles, check-ins, XP/combo/levels/integrity, habits, settings and day close. Phase 1 is complete and reviewed. The shipped UI still uses placeholder terminal styling; the warm restyle in `docs/design.md` remains the open visual work.
 (Decisions settled 2026-11-05: `node:sqlite`, `node:test`, plain CSS. See `docs/decisions.md`.)
 Exit criteria: a task entered in the UI appears in the local database file and displays back correctly.
 

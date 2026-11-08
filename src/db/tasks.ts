@@ -16,6 +16,8 @@ export type Task = {
   cognitive_load: CognitiveLoad;
   status: TaskStatus;
   parent_task_id: number | null;
+  habit_id: number | null;
+  carried_from_day_id: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -26,10 +28,11 @@ export type NewTask = {
   notes?: string | null;
   estimatedMinutes?: number | null;
   cognitiveLoad?: CognitiveLoad;
+  habitId?: number | null;
 };
 
 const COLUMNS =
-  "id, day_id, title, notes, estimated_minutes, cognitive_load, status, parent_task_id, created_at, updated_at";
+  "id, day_id, title, notes, estimated_minutes, cognitive_load, status, parent_task_id, habit_id, carried_from_day_id, created_at, updated_at";
 
 export function getTask(db: DatabaseSync, id: number): Task | undefined {
   const row = db
@@ -51,8 +54,8 @@ export function createTask(db: DatabaseSync, input: NewTask): Task {
 
   const result = db
     .prepare(
-      `INSERT INTO task (day_id, title, notes, estimated_minutes, cognitive_load)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO task (day_id, title, notes, estimated_minutes, cognitive_load, habit_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.dayId,
@@ -60,6 +63,7 @@ export function createTask(db: DatabaseSync, input: NewTask): Task {
       input.notes ?? null,
       input.estimatedMinutes ?? null,
       input.cognitiveLoad ?? "medium",
+      input.habitId ?? null,
     );
 
   // lastInsertRowid is a number or a bigint depending on the driver's mood.
@@ -78,6 +82,32 @@ export function listTasksForDay(db: DatabaseSync, dayId: number): Task[] {
   return db
     .prepare(`SELECT ${COLUMNS} FROM task WHERE day_id = ? ORDER BY created_at, id`)
     .all(dayId) as unknown as Task[];
+}
+
+/**
+ * Unfinished tasks from earlier days that are not already carried into today.
+ * They are suggestions only: nothing moves until the user asks (PLAN-6).
+ */
+export function listOpenTasksBefore(
+  db: DatabaseSync,
+  date: string,
+  todayId: number,
+  limit = 5,
+): Task[] {
+  return db
+    .prepare(
+      `SELECT ${COLUMNS.split(", ").map((column) => `task.${column}`).join(", ")}
+       FROM task JOIN day ON day.id = task.day_id
+       WHERE day.date < ? AND task.status = 'open' AND task.habit_id IS NULL
+         AND NOT EXISTS (
+           SELECT 1 FROM task carried
+           WHERE carried.day_id = ? AND carried.carried_from_day_id = task.day_id
+             AND carried.title = task.title
+         )
+       ORDER BY day.date DESC, task.id
+       LIMIT ?`,
+    )
+    .all(date, todayId, limit) as unknown as Task[];
 }
 
 /**

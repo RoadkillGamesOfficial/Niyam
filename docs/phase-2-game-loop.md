@@ -41,5 +41,18 @@ Before building the rest of the loop, prototype how a check-in reaches the user 
 - Habits appear in the plan on the correct days, and weekly habits persist until done.
 - Gamification numbers are all editable in configuration.
 
+## Implementation status (2026-11-08)
+
+Implemented in this repository: plan with profile and confirm, reorder, replan;
+check-ins with interval, responses, note, pause, missed handling, reconciliation
+and quiet hours; interruption levels (in-app card, chime + browser notification,
+firm overlay); XP ledger, combo, levels, integrity and heat map; preset shrinkage;
+habits with five frequency kinds, Essential, low-energy deferral, streaks, pause
+and archive; day close with summary and carry-over suggestions; settings page.
+
+Known limits: delivery only works while the app is open (no desktop wrapper);
+the planner is manual (Phase 3 adds parsing); task edit/merge/delete is not in
+this phase. See `docs/handoff.md` and `docs/decisions.md`.
+
 ## Handoff
 Update `docs/handoff.md` and `docs/decisions.md`. Run the reviewer, then the voice writer, before Phase 3.

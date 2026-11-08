@@ -220,6 +220,77 @@ What it rules out: the terminal aesthetic (`> ` prefixes, `[x]`/`[ ]` glyphs,
 monospace body text, near-black background) as anything other than history, and
 any "gamified" visual flourish that ships before Phase 2's mechanics do.
 
+## 2026-11-08 — Phase 2: game loop decisions
+
+### Check-in delivery: browser-first, recorded for Risk R1
+
+Decision: check-ins reach the user three ways, chosen by interruption level —
+Gentle shows only the in-page card, Standard adds a locally generated chime and
+a browser notification, Firm adds a full-screen overlay. Notifications are
+requested on the first click and only fire while the app is open in a tab.
+
+Why: the prototype options in `docs/phase-2-game-loop.md` were browser
+notifications with sound, an installable web app, and a desktop wrapper. The
+first needs no dependency and no manifest. An installable app would still need a
+service worker and push (a server or OS integration), and a wrapper means a
+new dependency plus an installer, both against the local-first, ask-first
+rules. So delivery stays in the browser, and the honest limit is recorded.
+
+What this satisfies and what it does not: while the tab is open and the user is
+in another app, the chime and OS notification still fire (PULSE-1 for that
+case). After the browser is closed or the laptop sleeps, slots are reconciled on
+next open: anything older than the grace window is logged as missed, so nothing
+is lost or counted twice (PULSE-4). A true always-on reminder needs a desktop
+wrapper and is a separate, owner-approved piece of work.
+
+### Player state is derived, never stored
+
+Decision: `xp_event` is append-only and there is no player table. Total XP,
+level, combo and integrity are recomputed from the ledger and pulse history on
+render (`src/db/player.ts`). The combo is a fold over answered check-ins, with a
+missed pulse counting as a drift for the multiplier only.
+
+Why: GAME-1 and GAME-2 become structural rather than promises — a bug would have
+to delete ledger rows to lose XP, and retuning the rules re-scores history the
+way the PDD intends. The cost is a handful of small queries per render, which is
+nothing for one local user.
+
+### Pauses are windows, not counters
+
+Decision: `pause` rows record `started_at`/`ended_at`; the scheduler subtracts
+those windows when it computes due slots, and quiet-hour slots are not created at
+all. Paused and quiet time can never produce a missed check-in.
+
+Why: a counter makes "paused for 20 minutes, resumed, paused again" ambiguous,
+and a missed pulse already resets the combo — punishing a deliberate break twice
+would break the never-shame principle.
+
+### Habits: archive, defer, and generate tasks
+
+Decision: habits create real tasks tagged with `habit_id`, plus one occurrence
+row per due day. Deleting a habit archives it (`archived_at`) so occurrences and
+streaks stay readable. Low-energy days write `deferred` occurrences for
+non-essential habits instead of tasks; deferred is never a failure. Streaks count
+completed due-days newest-first with one forgiven miss per week. Creating a habit
+mid-day syncs it into today's plan if the day is still open.
+
+Why: HAB-3 and HAB-4 want habits to be automatic and to stay visible inside a
+window, while HAB-5 and HAB-7 forbid penalties and history loss. Archive plus
+occurrences gives both without a second history store.
+
+### Phase 2 scope choices
+
+- Task editing, merging and deletion stay out: the phase doc's in-scope list is
+  enter, profile, reorder, confirm, timeline. Shrinking creates a child task and
+  keeps the parent, so nothing is destroyed.
+- Re-planning only moves open items above finished ones; it does not regenerate
+  timings, which would need the Phase 3 planner.
+- Carry-over is a suggestion: yesterday's open tasks appear with a "bring over"
+  button and nothing moves until asked (PLAN-6).
+- Gamification numbers stay in `src/config.ts` and are displayed read-only on
+  /settings, so they are reviewed like code (GAME-4).
+
+
 Rollout: five visual-only commits, listed in `docs/design.md`, each green on
 `npm test` and `npm run build` before the next. Phase 1's own docs are left as
 they are, because they accurately record what was built then.

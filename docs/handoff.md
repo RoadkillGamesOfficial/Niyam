@@ -1,8 +1,9 @@
 # Handoff — Phase 1: Local Foundation
 
 ## Status
-**Phase 1 complete.** One page adds a task for today, lists today's tasks and
-marks one done. Data lives in `data/discipline.db`. Nothing is pushed.
+**Phase 1 complete. Phase 2 implemented (2026-11-08).** The app now runs a full
+day: plan with a profile, start the day, check-ins with XP and combo, habits,
+settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
 Verified end to end on 2026-11-08 with the dev server on port 3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
@@ -141,7 +142,37 @@ tokens and five-commit rollout live in `docs/design.md`, and the reasoning is in
 or copy changes, no new dependencies, no image files. Phase 1's own doc is left
 unchanged because it records what was actually built.
 
-## Open questions before Phase 2
+## Phase 2 (2026-11-08)
+
+Built: manual plan with Daily Profile, reorder and confirm; check-in pulse with
+configurable interval, three responses, optional note, pause/resume, missed-slot
+reconciliation and quiet hours; interruption levels; XP ledger with combo,
+levels, integrity and a heat map; preset task shrinkage on drift; habits with
+five frequency kinds, Essential flag, low-energy deferral, streaks, pause and
+archive; day close with summary and carry-over suggestions; /settings for
+interval, interruption level and quiet hours.
+
+New code: `src/game/` (pure rules: combo/XP/levels/integrity, pulse slots,
+habits), `src/db/` additions (`plan`, `pulses`, `xp`, `player`, `habits`,
+`settings`, `checkins`), `src/app/check-in.tsx` (client reminder), `/settings`.
+Migration `002_phase2.sql` adds plan items, pulses, XP events, pauses, habits,
+occurrences and the settings row; Phase 1 rows are untouched.
+
+Verified on a running dev server on 2026-11-08: added a task, started the day,
+forced a due slot by moving `confirmed_at` back, answered On Track in the UI
+(pulse answered, +10 XP at ×1), created a daily habit (task, occurrence and plan
+item created), completed it (+15 XP, occurrence completed), saved settings
+(15 minutes, Gentle, quiet 22:00–07:00 persisted), and closed the day (summary
+XP 45, 1 answered, 1 missed, 2/3 tasks, 1 carried). `npm test` and `npm run build`
+pass at this commit.
+
+Limits recorded honestly: the notification, chime and firm overlay were not
+observed firing here (they need a focused/background tab and a permission
+prompt); quiet-hour suppression is covered by unit tests, not a timed run;
+and closing the tab loses the timer until the next open, when reconciliation
+logs what was missed. See `docs/decisions.md` for the delivery decision (R1).
+
+## Open questions before Phase 3
 - Run the reviewer role (`docs/roles/reviewer.md`) as the phase doc requires.
 - Phase 2's `plan_item` (a task placed on the timeline) can be added above these
   tables; Phase 1 stores the day link on the task, so nothing needs rewriting.
