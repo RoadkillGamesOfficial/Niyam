@@ -2,6 +2,7 @@
    warm daylight, rounded controls, gold for rewards. Components read these and
    never hardcode a colour, radius or duration. */
 :root {
+  --parchment-0: #fffdf6;
   --parchment-50: #fdf8ea;
   --parchment-100: #f7edd6;
   --parchment-200: #ecdcba;
@@ -12,6 +13,7 @@
   --ink-600: #6b5a44;
   /* Leaf/ gold are one step darker than the draft hexes in docs/design.md so
      parchment text on leaf, and the gold focus ring, clear their contrast bars. */
+  --leaf-400: #55823a;
   --leaf-500: #47712f;
   --leaf-700: #3f6629;
   --gold-300: #e3b04b;
@@ -55,6 +57,8 @@
   --border: 2px solid var(--wood-500);
   --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.6),
     0 6px 16px rgba(93, 62, 31, 0.16);
+  --shadow-panel: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 10px 24px rgba(93, 62, 31, 0.1), 0 2px 4px rgba(93, 62, 31, 0.06);
   --shadow-press: 0 1px 0 rgba(93, 62, 31, 0.35);
 
   --ease: cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -76,7 +80,8 @@ body {
   /* Parchment ground: one warm base, a soft daylight vignette, one grain layer. */
   background-color: var(--parchment-100);
   background-image:
-    radial-gradient(110% 70% at 50% 0%, rgba(255, 255, 255, 0.5), transparent 65%),
+    radial-gradient(90% 55% at 50% -10%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(55% 40% at 100% 0%, rgba(227, 176, 75, 0.12), transparent 70%),
     repeating-linear-gradient(
       45deg,
       rgba(109, 71, 38, 0.022) 0 2px,
@@ -91,9 +96,9 @@ body {
 }
 
 .shell {
-  max-width: 72ch;
+  max-width: 76ch;
   margin: 0 auto;
-  padding: 8vh var(--space-6) var(--space-8);
+  padding: var(--space-8) var(--space-6) var(--space-8);
 }
 
 /* The wordmark hangs on a wooden sign: warm bar, darker bottom edge. */
@@ -104,8 +109,16 @@ body {
   border: 1px solid var(--wood-700);
   border-bottom-width: 6px;
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, #7d5330, var(--wood-700));
-  box-shadow: var(--shadow-card);
+  background:
+    repeating-linear-gradient(
+      92deg,
+      rgba(0, 0, 0, 0.06) 0 2px,
+      transparent 2px 11px
+    ),
+    linear-gradient(180deg, #7d5330, var(--wood-700));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    var(--shadow-card);
   color: var(--parchment-50);
   font-size: var(--text-2xl);
   font-weight: 700;
@@ -153,11 +166,37 @@ body {
 
 .panel {
   margin-top: var(--space-6);
-  padding: var(--space-4) var(--space-6) var(--space-6);
-  border: var(--border);
+  padding: var(--space-6);
+  border: 1px solid var(--wood-500);
   border-radius: var(--radius-lg);
-  background: var(--parchment-50);
-  box-shadow: var(--shadow-card);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(109, 71, 38, 0.016) 0 2px,
+      transparent 2px 5px
+    ),
+    linear-gradient(180deg, var(--parchment-0), var(--parchment-50) 45%);
+  box-shadow: var(--shadow-panel);
+}
+
+.panel > .label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid rgba(154, 107, 66, 0.22);
+  color: var(--wood-700);
+  font-size: 1.05rem;
+}
+
+/* A small gold marker gives every section a consistent header without a rule. */
+.panel > .label::before {
+  content: "";
+  width: 4px;
+  height: 1.1em;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold-300), var(--gold-400));
 }
 
 .label {
@@ -216,7 +255,8 @@ body {
   border: 1px solid var(--leaf-700);
   border-bottom-width: 4px;
   border-radius: var(--radius-pill);
-  background: var(--leaf-500);
+  background: linear-gradient(180deg, var(--leaf-400), var(--leaf-500));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
   color: var(--parchment-50);
   font: inherit;
   font-weight: 700;
@@ -227,7 +267,9 @@ body {
 }
 
 .button:hover {
-  background: var(--leaf-700);
+  background: linear-gradient(180deg, var(--leaf-500), var(--leaf-700));
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(71, 113, 47, 0.28);
 }
 
 .button:active {
@@ -365,17 +407,27 @@ body {
 }
 
 .stat {
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-6);
   border: 1px solid var(--wood-300);
+  border-top: 4px solid var(--gold-400);
   border-radius: var(--radius-md);
-  background: var(--panel);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, var(--parchment-0), var(--panel));
+  box-shadow: var(--shadow-card);
+}
+
+.stats > .stat:nth-child(2) {
+  border-top-color: var(--sky-500);
+}
+
+.stats > .stat:nth-child(3) {
+  border-top-color: var(--leaf-500);
 }
 
 .stat-value {
   margin: 0 0 var(--space-1);
   color: var(--wood-700);
-  font-size: var(--text-xl);
+  font-size: 2rem;
+  line-height: 1.15;
   font-weight: 700;
 }
 
@@ -522,10 +574,11 @@ body {
 
 .current {
   margin: var(--space-3) 0;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-left: 4px solid var(--gold-400);
   border-radius: var(--radius-sm);
-  background: var(--parchment-100);
+  background: linear-gradient(180deg, var(--parchment-0), var(--parchment-100));
+  box-shadow: inset 0 0 0 1px rgba(154, 107, 66, 0.14);
   font-size: var(--text-lg);
   font-weight: 700;
 }
@@ -618,6 +671,97 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* Laptop and desktop: a wider two-column dashboard. The plan and habits sit
+   side by side, the header gets a rule, and the heat map becomes a strip. */
+@media (min-width: 980px) {
+  /* Only the dashboard has stats, so the settings page keeps its single column. */
+  .shell:has(.stats) {
+    max-width: 1120px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    column-gap: var(--space-6);
+    row-gap: var(--space-6);
+    padding-top: 56px;
+    padding-bottom: 72px;
+  }
+
+  .shell:has(.stats) > .masthead,
+  .shell:has(.stats) > .stats,
+  .shell:has(.stats) > .panel:has(.heatmap) {
+    grid-column: 1 / -1;
+  }
+
+  .shell:has(.stats) > .panel {
+    margin-top: 0;
+  }
+
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 0 var(--space-6);
+    margin-bottom: 0;
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid rgba(154, 107, 66, 0.35);
+  }
+
+  .masthead-top {
+    grid-column: 1 / -1;
+    align-items: center;
+    margin-bottom: var(--space-2);
+  }
+
+  .masthead > .lede {
+    max-width: 58ch;
+    margin: 0;
+    font-size: 1.35rem;
+  }
+
+  .masthead > .hint {
+    margin-top: 0;
+  }
+
+  .wordmark {
+    margin-bottom: 0;
+    padding: var(--space-2) var(--space-8) calc(var(--space-2) + 2px);
+    font-size: 2.5rem;
+  }
+
+  .shell:has(.stats) > .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 0;
+  }
+
+  /* A calendar strip rather than a lonely square in the corner. */
+  .shell:has(.stats) > .panel:has(.heatmap) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-6);
+  }
+
+  .shell:has(.stats) > .panel:has(.heatmap) > .label {
+    margin: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .heatmap {
+    justify-self: end;
+    grid-auto-columns: 18px;
+    grid-template-rows: repeat(7, 18px);
+    gap: 4px;
+    margin-top: 0;
+  }
+
+  .heat {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

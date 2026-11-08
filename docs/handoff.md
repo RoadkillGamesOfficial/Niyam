@@ -343,6 +343,13 @@ Three draft hexes were darkened so they meet their own targets: leaf
 (3.36:1 for the focus ring), sky `#5d87a6` → `#46688a` (5.49:1). The measured
 pair table is in `docs/design.md` under "Shipped values".
 
+A second, desktop-focused pass followed the owner's note that the page read
+plain on a laptop: from 980px the shell widens to 1120px, stats go three-up,
+plan and habits sit in two columns, the heat map becomes a calendar strip, and
+panel headings get a gold marker and hairline. The grid is scoped to the
+dashboard with `:has(.stats)`, which also fixed the settings page where the
+strip layout had squeezed the game values into a side column.
+
 Commits: `905bc4d` (palette, frame, sign) and the slips/motion commit that
 follows it, both `design revamp:` prefixed. `npm test` and `npm run build` pass.
 

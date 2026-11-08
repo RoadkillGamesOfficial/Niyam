@@ -202,6 +202,27 @@ No new dependencies, no images, no runtime font fetch.
 - A dusk theme is in the PDD backlog, not this pass. Tokens should make it cheap
   later, nothing more.
 
+## Desktop pass (2026-11-08)
+
+A second pass after the first screenshots: the page was built for a phone first
+and left a narrow column with a lot of unused screen on a laptop. From 980px up
+the shell widens to 1120px and becomes a two-column dashboard: stats across the
+full width, then the plan and habits side by side, with the heat map as a wide
+calendar strip. Panels align to the top instead of stretching to match their
+neighbour. The header gains a rule, the wordmark grows, and the panel headings
+share a gold marker and hairline.
+
+The desktop grid is scoped with `:has(.stats)`, because the settings page shares
+`.shell` but must stay a single readable column; before that guard, the heat-map
+strip layout landed on the settings page's last panel and squeezed its values
+list into the label column.
+
+New tokens, used as fills behind text and never as text colours, so no contrast
+gate applies: `--parchment-0: #fffdf6` (panel and stat tops) and
+`--leaf-400: #55823a` (button gradient top). Verified in a headless Chrome
+render at 1280px on both pages; captures are `docs/design-revamp-desktop.png`
+and `docs/design-revamp-settings.png`.
+
 ## Shipped values (2026-11-08)
 
 Landed in `src/app/globals.css`, with class names unchanged so no component had
