@@ -170,11 +170,21 @@ body {
 
 .task-form {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+.task-form select.task-input {
+  flex: 0 0 auto;
+}
+
+.task-form + .empty {
+  margin-top: var(--space-4);
 }
 
 .task-input {
   flex: 1 1 16ch;
+  min-width: 0;
   padding: var(--space-2) var(--space-3);
   border: 2px solid var(--wood-300);
   border-radius: var(--radius-sm);
@@ -309,7 +319,7 @@ body {
 }
 
 .empty {
-  margin: 0;
+  margin: var(--space-4) 0 0;
   color: var(--muted);
 }
 
