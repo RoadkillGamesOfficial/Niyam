@@ -82,3 +82,70 @@ scaffold into a directory that already contains `docs/`).
 
 ESLint is deliberately left out for now: it is a dev dependency and the
 dependency rule says ask first. Add it on request.
+
+## 2026-11-08 — Phase 1 page and data access
+
+### Data access: plain functions that take a connection
+
+Decision: `src/db/days.ts` and `src/db/tasks.ts` export functions whose first
+argument is the `DatabaseSync` connection (`getOrCreateDayForDate`,
+`createTask`, `listTasksForDay`, `setTaskStatus`, `getTask`). The single
+connection lives in `src/db/index.ts`, cached on `globalThis` so Next's dev
+reloads reuse it instead of leaking a handle per edit.
+
+Why: no repository class, no dependency-injection framework, and tests can aim
+the same functions at a temp database. Keeping the connection in one module also
+keeps the driver swap a one-file change, as promised under `node:sqlite`.
+
+Rules that follow:
+- A test never opens `data/discipline.db`; `src/db/test-helpers.ts` provides
+  `withTempDatabase`, which migrates a temp file, closes it, then deletes it
+  (closing first matters on Windows).
+- New queries go in these modules, not inline in a page or action.
+
+### Mutations: server actions that redirect (post/redirect/get)
+
+Decision: two server actions in `src/app/actions.ts`, `addTask` and
+`toggleTask`. Each writes SQLite and then calls `redirect("/")`. The page is
+`export const dynamic = "force-dynamic"`, and the forms are plain form posts, so
+the page still works without client JavaScript.
+
+Why: the first version called `revalidatePath("/")` instead. That left the
+browser sitting on the POST result, so refreshing the page re-sent the form and
+inserted the same task a second time — observed live during the acceptance run
+(two rows, identical title, three `POST /` lines in the dev log). The redirect
+leaves the browser on a GET of the list, which makes refresh harmless.
+
+Rules that follow:
+- A mutation that changes what the page shows must redirect, not just
+  revalidate.
+- Actions validate the same limits the form enforces (title non-empty, at most
+  `CONFIG.tasks.maxTitleLength`) because a POST can arrive without the page.
+
+### Marking a task done is in Phase 1
+
+Decision: task completion is in scope, with `setTaskStatus` in the data layer
+and one toggle per task in the UI. `docs/handoff.md` had said "add + list only"
+and was corrected to match `docs/phase-1-foundation.md`, which lists marking a
+task done in scope and in acceptance.
+
+Why: an acceptance criterion without a way to satisfy it is not a scope
+question. The status column, `open|done` check and index already existed, so this
+added no schema work.
+
+What it rules out: nothing already planned. Edit, delete and reordering stay out
+of Phase 1, and history is still never deleted — a task is flagged, not removed,
+so it can be reopened without losing when it was created.
+
+### A day is keyed by the local calendar date
+
+Decision: `day.date` is `YYYY-MM-DD` from `localDateString()` in `src/time.ts`,
+the one place a clock is read. `getOrCreateDayForDate` creates the row lazily on
+first visit and is idempotent (`ON CONFLICT` then read back).
+
+Why: Phase 1 has no accounts, no server and no timezone setting, so the laptop's
+local date is the only defensible definition of "today". Creating the row on
+first visit means there is no startup step or background job.
+
+What it rules out: a task cannot be entered for a day other than today yet, and
+changing the machine's timezone changes which day new tasks land in.

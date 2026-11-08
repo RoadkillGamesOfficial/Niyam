@@ -1,86 +1,112 @@
 # Handoff — Phase 1: Local Foundation
 
 ## Status
-Phase 1 under way. Commit 0 (docs baseline) and commit 1 (scaffold) are the
-first two steps; the rest of the commit plan below is unchanged. App runs with
-`npm run dev`.
+**Phase 1 complete.** One page adds a task for today, lists today's tasks and
+marks one done. Data lives in `data/discipline.db`. Nothing is pushed.
 
-Open technical risk resolved at commit 2: Turbopack bundles `node:sqlite` fine (a
-temporary route importing the data layer built cleanly), so better-sqlite3 stays
-an untested fallback.
+Verified end to end on 2026-11-08 with the dev server on port 3000:
+entered a task in the page → row in `task` → one row (not two) after a browser
+refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
+killed and restarted the dev server → the task and its done state were still
+there. `npm test` (10 tests) and `npm run build` both pass.
 
-Progress: `226eb68` docs baseline, `9c9afce` scaffold, `a0ff36d` SQLite
-connection + migration runner. `npm run build` and `npm run dev` both verified;
-`/` returns 200 with the title `Niyam`.
+Commits (each builds and passes tests, except 0–1 which predate the test script):
 
-Details worth keeping:
-- Next dev picked a free port on this machine (58016) rather than 3000; read the
-  startup banner for the real port before curling it.
-- First `next build` rewrote `tsconfig.json` for us: `jsx` became `react-jsx`
-  and `.next/dev/types/**/*.ts` was added to `include`. The
-  `allowImportingTsExtensions` setting survived, which the test setup depends on.
-- `package.json` has no `test` script yet on purpose: a runner with zero test
-  files cannot pass, so it arrives with the first real tests at commit 3.
-- Next telemetry is on by default. It is dev/build only, not runtime, but decide
-  whether to disable it (`NEXT_TELEMETRY_DISABLED=1`).
+| # | Commit | What |
+|---|--------|------|
+| 0 | `226eb68` | docs baseline |
+| 1 | `9c9afce` | scaffold Next.js app |
+| 2 | `a0ff36d` | SQLite connection + migration runner |
+| 3 | `156ecb8` | task and day data access + tests |
+| 4 | `8aaa68a` | add/list/done page |
+| 5 | (this commit) | README, handoff, decisions |
+
+Commits 0–2 are the unsigned rewrites; the remote copies (`76ae5e8`,
+`a912e13`) are content-identical. `git push` fast-forwards when asked.
+
+## How to run
+```
+npm install
+npm run dev      # open the URL it prints; the port is not always 3000
+npm test         # data-layer tests against throwaway databases
+npm run build    # production build + type check
+```
+
+## What exists
+- `src/app/page.tsx` — server component: reads today's day, lists its tasks,
+  renders the add form and one toggle form per task.
+- `src/app/actions.ts` — two server actions, `addTask` and `toggleTask`, each
+  writing SQLite then `redirect("/")`. The page is `force-dynamic` because it
+  reads the database per request.
+- `src/db/` — `database.ts` (connection + pragmas + migrate), `migrations.ts`
+  (filename-ordered, recorded in `schema_migrations`), `days.ts`, `tasks.ts`,
+  `index.ts` (one connection per process, cached on `globalThis` so dev reloads
+  do not leak handles).
+- `src/time.ts` — `localDateString()`, the only place a clock is read. "Today"
+  is the laptop's local date.
+- `src/copy.ts` — every user-facing string, including the one `PRODUCT_NAME`.
+- `src/config.ts` — database location and `tasks.maxTitleLength` (200).
+- `migrations/001_init.sql` — `day`, `task`, the `task_by_day_and_status` index.
+- Tests: `src/db/days.test.ts`, `src/db/tasks.test.ts`, sharing
+  `src/db/test-helpers.ts` (`withTempDatabase`, which never touches `data/`).
+
+## Decisions worth knowing (details in docs/decisions.md)
+- `node:sqlite`, no dependency; Turbopack bundles it (proved at commit 2).
+- `node:test` + `node:assert/strict`; erasable TS only, `.ts` import specifiers,
+  relative imports in the data layer, a quoted glob on the test command.
+- Plain CSS with custom-property tokens; `sass` is a near-free upgrade later.
+- Mutations are form posts and redirect: the first version only revalidated, and
+  a refresh re-sent the POST, inserting the same task twice during the
+  acceptance run. Post/redirect/get fixed it.
+
+## Details that still matter
+- The first `next build` rewrote `tsconfig.json`: `jsx: react-jsx` and
+  `.next/dev/types/**/*.ts` added to `include`. `allowImportingTsExtensions`
+  survived, which the tests depend on.
+- Migrations are read from `process.cwd()`, so dev, start and tests must run
+  from the project root. The npm scripts do.
+- `node --test` prints `MODULE_TYPELESS_PACKAGE_JSON` for each test file because
+  `package.json` has no `"type": "module"`. Harmless; adding `type: module` would
+  silence it and is a Phase 2 candidate.
+- Next telemetry is on for `dev` and `build` only; it is the project's only
+  outbound request. `NEXT_TELEMETRY_DISABLED=1` turns it off. Documented in the
+  README instead of hard-coded, because an inline env var is not portable across
+  Windows shells.
+- `next build` prints one Turbopack warning about `process.cwd()` in
+  `databasePath()` tracing the project. Benign for a local app; relevant only if
+  this is ever deployed.
 - ESLint was left out deliberately (dependency rule); add on request.
-- Commit 2 was checked against a throwaway DB: tables created, WAL and foreign
-  keys on, insert/read-back, and FK, CHECK and UNIQUE each rejected bad rows;
-  reopening kept the data and did not re-run `001_init.sql`.
-- Migrations are `.sql` files in `migrations/`, read at runtime from
-  `process.cwd()`. That assumes dev, start and tests all run from the project
-  root, which the npm scripts do.
-- `node --test` on `.ts` warns MODULE_TYPELESS_PACKAGE_JSON unless package.json
-  sets `"type": "module"`. It is harmless; decide at commit 3.
 
-## Settled approvals (2026-11-05, details in docs/decisions.md)
-- SQLite driver: `node:sqlite`. Verified here (Node v24.21.0): DatabaseSync,
-  WAL, foreign_keys, prepared statements, SQLite 3.53.4, no experimental
-  warning. Server-side only. Fallback: better-sqlite3 13.0.3 (needs approval).
-- Tests: `node:test` + `node:assert/strict`, runs `.ts` directly. Constraints:
-  erasable TS only (no enum/parameter properties), `allowImportingTsExtensions`
-  in tsconfig, glob not directory on the command line, relative imports in the
-  data layer (no `@/` alias). Fallback: Vitest (ask first).
-- Styling: hand-written CSS with custom-property tokens. `sass` later if it is
-  needed (near-free upgrade); Tailwind not planned.
-- Product name: Niyam, confirmed. One constant (`PRODUCT_NAME`) in
-  `src/copy.ts`; never in the DB filename, package name, or schema.
-
-## Scope
-In: scaffold, SQLite init + migrations, task/day repositories with tests,
-one page to add + list tasks, src/copy.ts, src/config.ts, README.
-Out: check-in timer, XP, combos, levels, integrity meter, habits, AI, insights,
-screen time. Deferred schema (Phase 2): plan_item, prerequisites, pulse, habits.
-
-## Schema (minimal, additive later)
-- day: id, date, profile (nullable), started_at, closed_at, summary
-- task: id, day_id, title, notes, estimated_minutes, cognitive_load
-  (light|medium|heavy), status (open|done), parent_task_id, created_at, updated_at
-- schema_migrations: applied migration filenames
-DB file: data/discipline.db (relative path, WAL, foreign_keys on). Gitignored.
+## Schema
+- `day`: id, date (unique, YYYY-MM-DD), profile, started_at, closed_at, summary
+- `task`: id, day_id → day, title, notes, estimated_minutes, cognitive_load
+  (light|medium|heavy), status (open|done), parent_task_id → task, created_at,
+  updated_at
+- `schema_migrations`: applied filenames
+- DB file `data/discipline.db`: WAL, `foreign_keys = ON`, `busy_timeout = 5000`,
+  gitignored.
 
 ## Assumptions
-- "Session markers" = PDD's Day entity; one row per local calendar day.
-- Phase 1 UI is add, list and mark done (no edit/delete). `docs/phase-1-foundation.md`
-  puts marking done in scope and in acceptance, so the earlier "add + list only"
-  note was corrected here.
-- Local timezone defines "today".
+- "Session markers" = PDD's Day entity; one row per local calendar day, created
+  lazily on first visit.
+- Phase 1 UI is add, list and mark done. No edit, no delete, no reordering.
+  (`docs/phase-1-foundation.md` puts done in scope and in acceptance, so the
+  earlier "add + list only" assumption was corrected at commit 4.)
+- Local timezone defines "today"; there is no setting for it yet.
+- Task order is creation order (`created_at`, then `id`), so a done task keeps
+  its place instead of jumping to the bottom.
 
-## Commit plan (each commit must work: npm test && npm run build pass, dev server starts)
-0. `phase1: add project docs baseline` — docs/ only. Add .gitignore in commit 1
-   (node_modules, .next, data/, *.db, *.db-wal, *.db-shm).
-1. `phase1: scaffold Next.js app` — placeholder page serves.
-2. `phase1: add SQLite connection and migration runner` — creates DB, applies 001_init.sql.
-3. `phase1: add task and day data access` — createTask/listTasksForDay/getOrCreateDayForDate + tests.
-4. `phase1: add task entry and list page` — add → refresh → still there.
-5. `phase1: document how to run the app` — README, handoff, decisions.
-Message style: `phase1: <imperative>`, one concern per commit, no wip fixups.
-
-## Done when
-Task entered in UI → row in data/discipline.db → correct after page refresh →
-correct after restarting the app → tests and build pass.
+## Open questions before Phase 2
+- Run the reviewer role (`docs/roles/reviewer.md`) as the phase doc requires.
+- Phase 2's `plan_item` (a task placed on the timeline) can be added above these
+  tables; Phase 1 stores the day link on the task, so nothing needs rewriting.
+  Confirm that reading against PDD §10 before building it.
+- Phase 2 needs a decision on the check-in delivery prototype (Risk R1).
+- Decide whether to silence the two warnings above (`type: module`, Turbopack
+  trace ignore) or leave them documented.
+- Nothing has been pushed; pushing is the owner's call.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;
-tunables in config; all user-facing strings in src/copy.ts; update
-docs/handoff.md and docs/decisions.md before ending a session.
+tunables in config; all user-facing strings in `src/copy.ts`; update
+`docs/handoff.md` and `docs/decisions.md` before ending a session.
