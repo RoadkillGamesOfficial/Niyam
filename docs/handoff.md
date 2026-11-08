@@ -350,6 +350,12 @@ panel headings get a gold marker and hairline. The grid is scoped to the
 dashboard with `:has(.stats)`, which also fixed the settings page where the
 strip layout had squeezed the game values into a side column.
 
+Every view followed: a closed day's summary spans the full dashboard width, and
+settings has a two-column desktop layout (form beside the game-values list).
+Panel padding is back to 16px/24px on small screens and 24px only from the
+desktop breakpoint, so the 320px layout is single-column with no horizontal
+overflow.
+
 Commits: `905bc4d` (palette, frame, sign) and the slips/motion commit that
 follows it, both `design revamp:` prefixed. `npm test` and `npm run build` pass.
 

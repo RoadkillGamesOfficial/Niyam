@@ -213,15 +213,27 @@ neighbour. The header gains a rule, the wordmark grows, and the panel headings
 share a gold marker and hairline.
 
 The desktop grid is scoped with `:has(.stats)`, because the settings page shares
-`.shell` but must stay a single readable column; before that guard, the heat-map
-strip layout landed on the settings page's last panel and squeezed its values
-list into the label column.
+`.shell` but must not inherit the dashboard's panel flow; before that guard, the
+heat-map strip layout landed on the settings page's last panel and squeezed its
+values list into the label column.
+
+The same treatment now covers every view: a closed day's summary panel spans the
+full width (it is prose and a definition list, not a column card), and the
+settings page gets its own two-column desktop layout — the check-in form beside
+the game-values reference — so it no longer sits in a narrow column with half a
+laptop screen empty.
+
+Mobile padding was restored after the first desktop pass raised the base panel
+padding: `.panel` keeps its original `16px 24px 24px`, and the desktop media
+query raises it to 24px on all sides. At 320px the dashboard is a single column
+with no horizontal overflow.
 
 New tokens, used as fills behind text and never as text colours, so no contrast
 gate applies: `--parchment-0: #fffdf6` (panel and stat tops) and
 `--leaf-400: #55823a` (button gradient top). Verified in a headless Chrome
-render at 1280px on both pages; captures are `docs/design-revamp-desktop.png`
-and `docs/design-revamp-settings.png`.
+render at 1280px on both pages, plus the running-day dashboard; captures are
+`docs/design-revamp-desktop.png`, `docs/design-revamp-active.png` and
+`docs/design-revamp-settings.png`.
 
 ## Shipped values (2026-11-08)
 
