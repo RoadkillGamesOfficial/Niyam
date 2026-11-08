@@ -61,7 +61,9 @@ DB file: data/discipline.db (relative path, WAL, foreign_keys on). Gitignored.
 
 ## Assumptions
 - "Session markers" = PDD's Day entity; one row per local calendar day.
-- Phase 1 UI is add + list only (no complete toggle, no edit/delete).
+- Phase 1 UI is add, list and mark done (no edit/delete). `docs/phase-1-foundation.md`
+  puts marking done in scope and in acceptance, so the earlier "add + list only"
+  note was corrected here.
 - Local timezone defines "today".
 
 ## Commit plan (each commit must work: npm test && npm run build pass, dev server starts)

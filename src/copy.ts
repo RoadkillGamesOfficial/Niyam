@@ -7,9 +7,16 @@ export const PRODUCT_NAME = "Niyam";
 export const COPY = {
   metaDescription:
     "A local-first companion for planning the day and keeping momentum.",
-  placeholder: {
+  home: {
     title: PRODUCT_NAME,
     lede: "A quiet local workspace for getting things done.",
-    nextStep: "Task entry arrives in the next step.",
+    dayLabel: "Today",
+    formLabel: "Add a task",
+    titlePlaceholder: "The smallest next thing",
+    addButton: "Add",
+    listHeading: "Today's tasks",
+    empty: "Nothing yet. Add the smallest next thing.",
+    markDone: "Mark done",
+    markOpen: "Mark open",
   },
 };
