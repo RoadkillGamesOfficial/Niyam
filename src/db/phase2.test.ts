@@ -152,6 +152,40 @@ describe("pulses and the combo", () => {
   });
 });
 
+describe("quiet hours", () => {
+  it("keeps quiet slots as quiet prompts instead of misses", () => {
+    withTempDatabase((db) => {
+      const now = new Date();
+      const start = new Date(now.getTime() - 45 * 60_000);
+      const day = getOrCreateDayForDate(db, today);
+      confirmPlan(db, day.id, slotKey(start));
+      const settings = updateSettings(db, {
+        intervalMinutes: 30,
+        interruptionLevel: "firm",
+        quietStart: "00:00",
+        quietEnd: "23:59",
+      });
+      const fresh = getOrCreateDayForDate(db, today);
+
+      const result = reconcileCheckins(db, fresh, settings, now);
+      const pulses = listPulsesForDay(db, day.id);
+      assert.ok(pulses.length >= 1);
+      assert.ok(pulses.every((pulse) => pulse.status === "pending" && pulse.quiet === 1));
+      assert.equal(result.missed, 0);
+
+      // A later pass must not age them into misses, and the combo stays intact.
+      const later = reconcileCheckins(
+        db,
+        fresh,
+        settings,
+        new Date(now.getTime() + 30 * 60_000),
+      );
+      assert.equal(later.missed, 0);
+      assert.equal(getPlayerState(db).multiplier, 1);
+    });
+  });
+});
+
 describe("XP ledger", () => {
   it("only ever adds, so totals cannot go down", () => {
     withTempDatabase((db) => {

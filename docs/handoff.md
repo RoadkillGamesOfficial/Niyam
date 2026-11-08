@@ -166,11 +166,50 @@ item created), completed it (+15 XP, occurrence completed), saved settings
 XP 45, 1 answered, 1 missed, 2/3 tasks, 1 carried). `npm test` and `npm run build`
 pass at this commit.
 
-Limits recorded honestly: the notification, chime and firm overlay were not
-observed firing here (they need a focused/background tab and a permission
-prompt); quiet-hour suppression is covered by unit tests, not a timed run;
-and closing the tab loses the timer until the next open, when reconciliation
-logs what was missed. See `docs/decisions.md` for the delivery decision (R1).
+### Interruption levels and quiet hours, verified live (2026-11-08)
+
+All three levels were observed firing in the running app, each time by moving
+the schedule so a real slot came due while the page was open (the client timer
+fired, called `router.refresh()`, and the server created the prompt). A probe
+installed in the page counted `AudioContext.createOscillator` calls and
+`Notification` constructions; the browser was driven directly.
+
+| Level | Forced due slot | Observed |
+|-------|-----------------|----------|
+| Gentle | card appeared | card only; 0 oscillators, 0 notifications, no overlay |
+| Standard | card appeared | card; exactly one chime (2 oscillators) and one notification; no overlay |
+| Firm | overlay opened | full-screen `role="dialog"` overlay; the Settings link was not the topmost element at its own coordinates (the overlay was), so the page is gated; answered On Track through the overlay form |
+
+Answering through the firm overlay wrote the expected rows: `pulse` 5 became
+`answered` / `on_track`, and `xp_event` gained `pulse_on_track` +10 with
+`pulse_id = 5` (the same shape as answering from the card).
+
+Quiet hours were proved end to end with the level set to Firm and the quiet
+window covering the current time: the forced slot produced a `pulse` row with
+`quiet = 1` and status `pending`, the page rendered the card with "This one
+waited quietly", and there was no overlay, 0 oscillators and 0 notifications,
+while the rest of the page stayed reachable. An unanswered quiet prompt is never
+aged into a missed check-in.
+
+Two fixes came out of running it rather than reading it:
+- Quiet-hour slots used to be filtered out of reconciliation entirely, so a due
+  slot inside the window produced nothing at all. The newest quiet slot is now
+  recorded as a quiet pending pulse and rendered quietly.
+- The timer chimed for a due slot and then the refreshed pending prompt chimed
+  again on mount (two notifications for one prompt). Escalation inside 10s of
+the timer firing is now suppressed, so one prompt makes one sound.
+
+Limits recorded honestly: the notification permission could not be granted
+through a real OS prompt in the headless browser (the request never resolves),
+so the page's `Notification.permission` was overridden to `"granted"` and the
+constructor was counted — the code path and its one-per-prompt cadence are
+proven, but no OS banner was visually seen. The dev server (Turbopack) never
+hydrates through this cloud preview proxy because its HMR websocket is refused
+(502), so the live proof ran against `npm start` from the same build, with the
+server's timezone aligned to the browser's (`TZ=America/New_York`); on a
+single-machine install both already match. Closing the tab still loses the
+timer until the next open, when reconciliation logs what was missed. See
+`docs/decisions.md` for the delivery decision (R1).
 
 ## Open questions before Phase 3
 - Run the reviewer role (`docs/roles/reviewer.md`) as the phase doc requires.

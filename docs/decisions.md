@@ -290,6 +290,44 @@ occurrences gives both without a second history store.
 - Gamification numbers stay in `src/config.ts` and are displayed read-only on
   /settings, so they are reviewed like code (GAME-4).
 
+## 2026-11-08 — Phase 2: interruption levels proven, quiet slots kept
+
+### A quiet-hour slot is a quiet prompt, not nothing
+
+Decision: reconciliation keeps the newest quiet-hour slot as a `pulse` row with
+`quiet = 1` and status `pending` (migration `003_quiet_pulses.sql` adds the
+column). The page renders it as the normal card with a quiet note, and it is
+exempt from the aging pass that turns unanswered loud prompts into missed ones.
+
+Why: the earlier code filtered quiet slots out of `reconcile` entirely, with the
+intent that quiet time never produces a missed check-in. The effect was that a
+slot due inside the window produced nothing at all — no card, no record — which
+is not "render quietly", it is "silently drop". Keeping the newest slot gives
+the user something to answer in the morning without ever escalating.
+
+What it rules out: quiet prompts never chime, notify, open the overlay, or age
+into a miss. Louder levels are unaffected outside the window.
+
+### One prompt makes one sound
+
+Decision: the client reminder records when its countdown timer fires and skips
+the mount-time escalation for a prompt that arrives within 10 seconds of that
+fire.
+
+Why: observed live at Standard — the timer chimed and notified, then
+`router.refresh()` mounted the now-pending prompt, whose own effect chimed again,
+so one due slot produced two chimes and two notifications. The ref-based guard
+keeps the "already waiting when the page opened" chime while removing the
+duplicate for a prompt the timer just announced.
+
+### Client timers are read in the browser's timezone
+
+The schedule is stored as local wall-clock strings and the client parses
+`nextDueAt` with `new Date(...)`, so the page and the server must agree on the
+timezone. Proving the levels in this workspace needed `TZ=America/New_York` on
+the server because the preview browser runs in that zone while the container
+defaults to UTC; on a single-machine install there is nothing to set. A future
+multi-machine or sync feature would have to send an explicit offset instead.
 
 Rollout: five visual-only commits, listed in `docs/design.md`, each green on
 `npm test` and `npm run build` before the next. Phase 1's own docs are left as

@@ -201,6 +201,9 @@ export default async function Home({
                 <input type="hidden" name="pulseId" value={pending.id} />
                 <p className="checkin-question">{COPY.checkin.question}</p>
                 <p className="hint small">{current ? current.title : COPY.home.noCurrent}</p>
+                {pending.quiet === 1 ? (
+                  <p className="hint small">{COPY.checkin.quietLede}</p>
+                ) : null}
                 <label className="field">
                   <span>{COPY.checkin.noteLabel}</span>
                   <input
@@ -288,7 +291,11 @@ export default async function Home({
               level={settings.interruption_level}
               nextDueAt={nextDueAt}
               pending={Boolean(pending)}
+              pendingId={pending?.id ?? null}
+              pendingQuiet={pending?.quiet === 1}
               paused={paused}
+              quietStart={settings.quiet_start}
+              quietEnd={settings.quiet_end}
             />
           </section>
         </>

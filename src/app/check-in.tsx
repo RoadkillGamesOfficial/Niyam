@@ -3,25 +3,48 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COPY } from "@/copy";
+import { isQuiet } from "@/game/pulses";
+import { answerCheckin } from "./actions";
 
-// Browser side of the check-in. The server owns the schedule; this only makes a
-// due prompt noticeable while another window has focus (PULSE-1). Interruption
-// levels map to: in-page card only (gentle), card plus a soft chime and a
-// notification (standard), or a full-screen prompt (firm).
+// Browser side of the check-in. The server owns the schedule; this makes a due
+// prompt noticeable while another window has focus (PULSE-1), at the level the
+// user chose:
+//   gentle   -> the server-rendered card only
+//   standard -> card, plus a locally generated chime and a browser notification
+//   firm     -> card, plus a full-screen prompt that stays until it is answered
+// Quiet hours never escalate, whatever the level.
+
+type Level = "gentle" | "standard" | "firm";
 
 type Props = {
   intervalMinutes: number;
-  level: "gentle" | "standard" | "firm";
+  level: Level;
   nextDueAt: string | null;
   pending: boolean;
+  pendingId: number | null;
+  pendingQuiet: boolean;
   paused: boolean;
+  quietStart: string | null;
+  quietEnd: string | null;
 };
 
-export function CheckInWatcher({ intervalMinutes, level, nextDueAt, pending, paused }: Props) {
+export function CheckInWatcher({
+  intervalMinutes,
+  level,
+  nextDueAt,
+  pending,
+  pendingId,
+  pendingQuiet,
+  paused,
+  quietStart,
+  quietEnd,
+}: Props) {
   const router = useRouter();
   const [overlay, setOverlay] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
-  const chimePlayed = useRef(false);
+  const notifiedPending = useRef<number | null>(null);
+  const timerFired = useRef(false);
+  const timerFiredAt = useRef(0);
 
   // A soft two-note chime, generated locally: no audio files, no network.
   function chime(): void {
@@ -31,6 +54,9 @@ export function CheckInWatcher({ intervalMinutes, level, nextDueAt, pending, pau
         (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) return;
       const context = new AudioContextClass();
+      if (context.state === "suspended") {
+        void context.resume();
+      }
       [660, 880].forEach((frequency, index) => {
         const oscillator = context.createOscillator();
         const gain = context.createGain();
@@ -47,8 +73,10 @@ export function CheckInWatcher({ intervalMinutes, level, nextDueAt, pending, pau
     }
   }
 
-  function notify(): void {
-    if (level === "gentle") return;
+  function notify(quietNow: boolean): void {
+    if (level === "gentle" || quietNow) {
+      return;
+    }
     chime();
     if (level === "firm") {
       setOverlay(true);
@@ -62,32 +90,61 @@ export function CheckInWatcher({ intervalMinutes, level, nextDueAt, pending, pau
     }
   }
 
+  // Firm is a gate, not a toast: any loud pending prompt opens it, including one
+  // that came due while the page was closed.
+  useEffect(() => {
+    if (!pending) {
+      setOverlay(false);
+      return;
+    }
+    if (level === "firm" && !pendingQuiet) {
+      setOverlay(true);
+    }
+  }, [pending, pendingQuiet, level]);
+
+  // A prompt that was already waiting still gets one chime/notification.
+  useEffect(() => {
+    if (!pending || !pendingId || pendingQuiet || paused) {
+      return;
+    }
+    if (notifiedPending.current === pendingId) {
+      return;
+    }
+    notifiedPending.current = pendingId;
+    // The timer already chimed for this prompt a moment ago; refresh() then
+    // mounts it as pending, and escalating again would double the interruption.
+    if (Date.now() - timerFiredAt.current < 10_000) {
+      return;
+    }
+    notify(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, pendingId, pendingQuiet, paused, level]);
+
+  useEffect(() => {
+    timerFired.current = false;
+  }, [nextDueAt]);
+
   useEffect(() => {
     if (paused || !nextDueAt) {
       setRemaining(null);
       return;
     }
-    const due = new Date(nextDueAt.replace(" ", "T")).getTime();
+    const due = new Date(nextDueAt.replace(" ", "T"));
     const tick = (): void => {
-      const left = due - Date.now();
+      const left = due.getTime() - Date.now();
       setRemaining(left);
-      if (left <= 0 && !chimePlayed.current) {
-        chimePlayed.current = true;
-        notify();
-        router.refresh(); // pull the server-rendered prompt
+      if (left <= 0 && !timerFired.current) {
+        timerFired.current = true;
+        timerFiredAt.current = Date.now();
+        notify(isQuiet(due, quietStart, quietEnd));
+        router.refresh(); // pull the server-rendered prompt (and its quiet flag)
       }
     };
     tick();
     const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nextDueAt, paused, level]);
-
-  useEffect(() => {
-    if (pending) {
-      chimePlayed.current = false;
-    }
-  }, [pending]);
+  }, [nextDueAt, paused, level, quietStart, quietEnd, router]);
 
   // Ask once, on the first click, so the browser allows notifications later.
   useEffect(() => {
@@ -101,15 +158,46 @@ export function CheckInWatcher({ intervalMinutes, level, nextDueAt, pending, pau
     return () => window.removeEventListener("pointerdown", ask);
   }, [level]);
 
-  if (overlay && level === "firm" && pending) {
+  if (overlay && level === "firm" && pending && pendingId !== null && !pendingQuiet) {
     return (
-      <div className="overlay" role="dialog" aria-modal="true" aria-label={COPY.checkin.heading}>
+      <div
+        className="overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-label={COPY.checkin.overlayHeading}
+      >
         <div className="overlay-card">
-          <h2>{COPY.checkin.question}</h2>
-          <p>{COPY.checkin.notePlaceholder}</p>
-          <button className="button" type="button" onClick={() => setOverlay(false)}>
-            {COPY.checkin.heading}
-          </button>
+          <p className="label">{COPY.checkin.overlayHeading}</p>
+          <h2 className="checkin-question">{COPY.checkin.question}</h2>
+          <form action={answerCheckin}>
+            <input type="hidden" name="pulseId" value={pendingId} />
+            <label className="field">
+              <span>{COPY.checkin.noteLabel}</span>
+              <input
+                type="text"
+                name="note"
+                maxLength={280}
+                placeholder={COPY.checkin.notePlaceholder}
+              />
+            </label>
+            <div className="answer-row">
+              <button className="button" type="submit" name="response" value="on_track">
+                {COPY.checkin.onTrack}
+              </button>
+              <button className="button button-alt" type="submit" name="response" value="pivot">
+                {COPY.checkin.pivot}
+              </button>
+              <button
+                className="button button-quiet"
+                type="submit"
+                name="response"
+                value="drifted"
+              >
+                {COPY.checkin.drifted}
+              </button>
+            </div>
+          </form>
+          <p className="hint small">{COPY.checkin.overlayHint}</p>
         </div>
       </div>
     );

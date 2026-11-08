@@ -26,14 +26,15 @@ export function reconcileCheckins(
   const start = parseLocalTimestamp(day.confirmed_at);
   const pauses = pauseWindows(db, day.id);
   const slots = dueSlots(start, now, settings.checkin_interval_minutes, pauses);
+  const quiet = (at: Date): boolean => isQuiet(at, settings.quiet_start, settings.quiet_end);
+  const loudSlots = slots.filter((slot) => !quiet(slot));
   const existing = listPulsesForDay(db, day.id).map((pulse) =>
     parseLocalTimestamp(pulse.due_at),
   );
-  const quiet = (at: Date): boolean => isQuiet(at, settings.quiet_start, settings.quiet_end);
 
-  const result = reconcile(slots, existing, now, {
+  const result = reconcile(loudSlots, existing, now, {
     graceMinutes: CONFIG.pulses.graceMinutes,
-    quiet,
+    quiet: () => false, // quiet slots are handled separately
   });
 
   const current = currentPlanItem(db, day.id);
@@ -54,6 +55,21 @@ export function reconcileCheckins(
     });
   }
 
+  // Quiet hours do not drop the slot. The newest one becomes a quiet prompt: it
+  // renders as a card, never escalates, and is never aged into a missed pulse.
+  const quietSlots = slots.filter(quiet);
+  const newestQuiet = quietSlots[quietSlots.length - 1];
+  const newestSlot = slots[slots.length - 1];
+  if (newestQuiet && newestSlot && newestQuiet.getTime() === newestSlot.getTime()) {
+    createPulse(db, {
+      dayId: day.id,
+      dueAt: slotKey(newestQuiet),
+      status: "pending",
+      taskId: current?.task_id ?? null,
+      quiet: true,
+    });
+  }
+
   // A prompt that was shown but never answered ages out into a missed check-in,
   // unless the user deliberately paused (paused time never counts).
   if (!isPaused(db, day.id)) {
@@ -61,6 +77,7 @@ export function reconcileCheckins(
     for (const pulse of listPulsesForDay(db, day.id)) {
       if (
         pulse.status === "pending" &&
+        pulse.quiet === 0 &&
         now.getTime() - parseLocalTimestamp(pulse.due_at).getTime() > graceMs
       ) {
         markPulseMissed(db, pulse.id);

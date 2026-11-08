@@ -71,7 +71,7 @@ describe("rewards never go backwards", () => {
 
     let highestLevel = 0;
     for (const sequence of sequences) {
-      let multiplier = CONFIG.game.combo.start;
+      let multiplier: number = CONFIG.game.combo.start;
       let total = 0;
       for (const response of sequence) {
         total += pulseXp(response, multiplier);

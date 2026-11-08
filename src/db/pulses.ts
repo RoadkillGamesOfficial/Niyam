@@ -15,12 +15,13 @@ export type Pulse = {
   status: PulseStatus;
   response: PulseResponse | null;
   note: string | null;
+  quiet: number;
   answered_at: string | null;
   created_at: string;
 };
 
 const COLUMNS =
-  "id, day_id, task_id, due_at, status, response, note, answered_at, created_at";
+  "id, day_id, task_id, due_at, status, response, note, quiet, answered_at, created_at";
 
 export function listPulsesForDay(db: DatabaseSync, dayId: number): Pulse[] {
   return db
@@ -45,13 +46,20 @@ export function createPulse(
     dueAt: string;
     status: PulseStatus;
     taskId?: number | null;
+    quiet?: boolean;
   },
 ): void {
   db.prepare(
-    `INSERT INTO pulse (day_id, task_id, due_at, status)
-     VALUES (?, ?, ?, ?)
+    `INSERT INTO pulse (day_id, task_id, due_at, status, quiet)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(day_id, due_at) DO NOTHING`,
-  ).run(input.dayId, input.taskId ?? null, input.dueAt, input.status);
+  ).run(
+    input.dayId,
+    input.taskId ?? null,
+    input.dueAt,
+    input.status,
+    input.quiet ? 1 : 0,
+  );
 }
 
 /** The one prompt worth showing: newest pending, oldest first if several exist. */
