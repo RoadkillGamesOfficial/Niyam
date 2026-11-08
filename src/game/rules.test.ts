@@ -55,6 +55,38 @@ describe("XP amounts", () => {
   });
 });
 
+describe("rewards never go backwards", () => {
+  it("keeps every sequence of responses inside the rules", () => {
+    // Property-style: walk all response sequences up to length 5 and assert the
+    // invariants hold for each, rather than checking a handful of examples.
+    const responses = ["on_track", "pivot", "drifted"] as const;
+    const sequences: Array<Array<(typeof responses)[number]>> = [[]];
+    for (let length = 0; length < 5; length += 1) {
+      for (const prefix of sequences.filter((seq) => seq.length === length)) {
+        for (const response of responses) {
+          sequences.push([...prefix, response]);
+        }
+      }
+    }
+
+    let highestLevel = 0;
+    for (const sequence of sequences) {
+      let multiplier = CONFIG.game.combo.start;
+      let total = 0;
+      for (const response of sequence) {
+        total += pulseXp(response, multiplier);
+        multiplier = nextMultiplier(multiplier, response);
+        assert.ok(multiplier >= CONFIG.game.combo.start, "multiplier below its floor");
+        assert.ok(multiplier <= CONFIG.game.combo.cap, "multiplier above its cap");
+        assert.ok(total >= 0, "XP went negative");
+      }
+      const level = levelForXp(total).level;
+      assert.ok(level >= highestLevel, "level went backwards as XP grew");
+      highestLevel = Math.max(highestLevel, level);
+    }
+  });
+});
+
 describe("levels", () => {
   it("starts at level 1 with zero XP", () => {
     const level = levelForXp(0);
