@@ -1,8 +1,9 @@
 # local-discipline-companion
 
 A local-first discipline companion. One page, one SQLite file, no accounts, no
-network calls while it runs. This is Phase 1 (local foundation): add a task for
-today, see the list, mark a task done.
+network calls while it runs. Phase 1 (local foundation) and Phase 2 (game loop)
+are complete: a manual plan with a Daily Profile, check-ins with XP and combo,
+habits, settings and a day close. The suite is 70 tests.
 
 ## Requirements
 

@@ -1,4 +1,4 @@
-# Handoff — Phase 1: Local Foundation
+# Handoff — current state
 
 ## Status
 **Phase 1 complete. Phase 2 complete, reviewed and voice-passed (2026-11-08).** The app now runs a full
@@ -8,22 +8,31 @@ Verified end to end on 2026-11-08 with the dev server on port 3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
 killed and restarted the dev server → the task and its done state were still
-there. `npm test` (12 tests) and `npm run build` both pass.
+there. `npm test` (70 tests) and `npm run build` both pass.
 
-Commits (each builds and passes tests, except 0–1 which predate the test script):
+Commits on this branch, oldest first. All of them are local: the repository has
+no remote configured, so nothing has been pushed.
 
-| # | Commit | What |
-|---|--------|------|
-| 0 | `226eb68` | docs baseline |
-| 1 | `9c9afce` | scaffold Next.js app |
-| 2 | `a0ff36d` | SQLite connection + migration runner |
-| 3 | `156ecb8` | task and day data access + tests |
-| 4 | `8aaa68a` | add/list/done page |
-| 5 | `9f6dfe1` | README, handoff, decisions |
-| 6 | (this commit) | reviewer pass fixes and record |
+| Commit | What |
+|--------|------|
+| `f04b9a1` | Initial cloud project (base commit) |
+| `5dbeb62` | added phased documentation |
+| `156ecb8` | phase 1: task and day data access |
+| `8aaa68a` | phase 1: task entry and list page |
+| `9f6dfe1` | phase 1: document how to run the app |
+| `cd0cba6` | phase 1: address review findings |
+| `691ee8b` | docs: warm Stardew-inspired visual direction |
+| `0e0ea9a` | phase 2: daily plan, check-ins and rewards |
+| `e99f1f4` | phase 2: rewards can never decrease |
+| `4f6ee35` | phase 2: check-in levels and quiet hours |
+| `a5b4265` | phase 2: acceptance, review and voice pass |
+| `a910002` | docs: level and copy checks on the committed build |
 
-Commits 0–2 are the unsigned rewrites; the remote copies (`76ae5e8`,
-`a912e13`) are content-identical. `git push` fast-forwards when asked.
+The audit fix that corrected this table is the newest commit on the branch.
+`main` and the working branch `freebuff/c529a0c2dcc68f8c257e8625` point at the
+same commit. An earlier version of this table listed three hashes that are not
+in this repository's history at all; they came from a previous clone and were
+dropped, so every hash left here resolves with `git cat-file -t`.
 
 ## How to run
 ```
@@ -52,7 +61,8 @@ npm run build    # production build + type check
   `src/db/test-helpers.ts` (`withTempDatabase`, which never touches `data/`).
 
 ## Decisions worth knowing (details in docs/decisions.md)
-- `node:sqlite`, no dependency; Turbopack bundles it (proved at commit 2).
+- `node:sqlite`, no dependency; Turbopack bundles it (proved when the data
+  layer landed).
 - `node:test` + `node:assert/strict`; erasable TS only, `.ts` import specifiers,
   relative imports in the data layer, a quoted glob on the test command.
 - Plain CSS with custom-property tokens; `sass` is a near-free upgrade later.
@@ -93,14 +103,14 @@ npm run build    # production build + type check
   lazily on first visit.
 - Phase 1 UI is add, list and mark done. No edit, no delete, no reordering.
   (`docs/phase-1-foundation.md` puts done in scope and in acceptance, so the
-  earlier "add + list only" assumption was corrected at commit 4.)
+  earlier "add + list only" assumption was corrected in `8aaa68a`.)
 - Local timezone defines "today"; there is no setting for it yet.
 - Task order is creation order (`created_at`, then `id`), so a done task keeps
   its place instead of jumping to the bottom.
 
 ## Reviewer pass (2026-11-08)
 Run as `docs/roles/reviewer.md` requires, against the code at `9f6dfe1` plus the
-fixes in this commit. Exercised on a running dev server with an empty
+fixes in `cd0cba6`. Exercised on a running dev server with an empty
 database: empty state, adding a task, refresh, marking done, reopening, browser
 restart with the server killed and started again, and bad input (blank title,
 spaces only, a 250-character title forced past the `maxLength` attribute, an
@@ -164,7 +174,7 @@ forced a due slot by moving `confirmed_at` back, answered On Track in the UI
 item created), completed it (+15 XP, occurrence completed), saved settings
 (15 minutes, Gentle, quiet 22:00–07:00 persisted), and closed the day (summary
 XP 45, 1 answered, 1 missed, 2/3 tasks, 1 carried). `npm test` and `npm run build`
-pass at this commit.
+pass on the branch.
 
 ### Interruption levels and quiet hours, verified live (2026-11-08)
 

@@ -189,7 +189,7 @@ No new dependencies, no images, no runtime font fetch.
 - Keyboard-only pass: tab to input, submit, tab to each toggle, activate, no traps.
 - Reduced-motion pass: no transforms when the OS asks for less motion.
 - Widths 320 / 768 / 1280px, plus 200% zoom.
-- `npm test` (12 tests) and `npm run build` green.
+- `npm test` and `npm run build` green.
 - One screenshot recorded in the session for the owner to react to, since a
   visual change cannot be verified by compiling it.
 
