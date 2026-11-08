@@ -356,6 +356,11 @@ Panel padding is back to 16px/24px on small screens and 24px only from the
 desktop breakpoint, so the 320px layout is single-column with no horizontal
 overflow.
 
+On a running day the check-in board spans two grid rows so the plan rises under
+"On now"; at 1280px the left column ends at 901px and the check-in column at
+908px. The habits panel spans the full width and pairs its form fields two-up,
+so no part of the dashboard sits beside an empty column.
+
 Commits: `905bc4d` (palette, frame, sign) and the slips/motion commit that
 follows it, both `design revamp:` prefixed. `npm test` and `npm run build` pass.
 

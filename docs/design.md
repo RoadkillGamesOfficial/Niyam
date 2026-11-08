@@ -228,6 +228,12 @@ padding: `.panel` keeps its original `16px 24px 24px`, and the desktop media
 query raises it to 24px on all sides. At 320px the dashboard is a single column
 with no horizontal overflow.
 
+On a running day the check-in board is the tall card, so it spans two grid rows
+and the plan is pinned to column one, rising under "On now" instead of leaving
+a blank block. The habits panel then spans the full width and pairs its fields
+two-up, rather than sitting in one long column next to an empty one. At 1280px
+the left column ends at 901px and the check-in column at 908px.
+
 New tokens, used as fills behind text and never as text colours, so no contrast
 gate applies: `--parchment-0: #fffdf6` (panel and stat tops) and
 `--leaf-400: #55823a` (button gradient top). Verified in a headless Chrome

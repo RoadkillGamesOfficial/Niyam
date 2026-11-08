@@ -707,6 +707,49 @@ body {
     grid-column: 1 / -1;
   }
 
+  /* On a running day the check-in board is the tall card. It spans two rows so
+     the plan rises under "On now" and both columns finish together, instead of
+     leaving a blank block under the short card. */
+  .shell:has(.stats):has(.checkin) > .panel:has(.checkin) {
+    grid-row: span 2;
+  }
+
+  .shell:has(.stats):has(.checkin) > .panel:has(.task-form) {
+    grid-column: 1;
+  }
+
+  /* Habits then takes the full width; its fields pair up so the form does not
+     become one long column beside a nearly empty list. */
+  .shell:has(.stats):has(.checkin) > .panel:has(.settings-form) {
+    grid-column: 1 / -1;
+  }
+
+  .shell:has(.stats):has(.checkin) > .panel:has(.settings-form) .settings-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-6);
+    row-gap: 0;
+  }
+
+  .shell:has(.stats):has(.checkin)
+    > .panel:has(.settings-form)
+    .settings-form
+    > .label,
+  .shell:has(.stats):has(.checkin)
+    > .panel:has(.settings-form)
+    .settings-form
+    > .field:has(input[type="checkbox"]) {
+    grid-column: 1 / -1;
+  }
+
+  .shell:has(.stats):has(.checkin)
+    > .panel:has(.settings-form)
+    .settings-form
+    > .button {
+    justify-self: start;
+    margin-top: var(--space-2);
+  }
+
   .masthead {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
