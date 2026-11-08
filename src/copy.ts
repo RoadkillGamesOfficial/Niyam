@@ -1,6 +1,6 @@
 // Every user-facing string lives here so it is easy to replace in one place.
-// Voice pass 2026-11-08 for Phase 2: short, warm, plain. Still placeholder until
-// the owner signs off.
+// Voice pass 2026-11-08 for Phase 2: short, warm, plain. The rules behind these
+// strings are in docs/voice-guide.md.
 
 // The one and only place the product name appears. See docs/decisions.md.
 export const PRODUCT_NAME = "Niyam";
@@ -90,7 +90,7 @@ export const COPY = {
     paused: "Check-ins paused",
     pause: "Pause check-ins",
     resume: "Resume check-ins",
-    missedHelper: "A missed check-in never costs XP. It only resets the combo.",
+    missedHelper: "An unanswered check-in never costs XP. It only resets the combo.",
     quietHelper: "Quiet hours hold check-ins without counting them as missed.",
     driftedHeading: "Make it smaller",
     driftedLede: "Pick something easier than the whole task. Starting counts.",
@@ -120,7 +120,7 @@ export const COPY = {
     detail: "Detail",
     details: {
       daily: "Nothing needed",
-      weekdays: "Weekday numbers, Sunday is 0 (for example 1,3,5)",
+      weekdays: "Days as numbers, Sunday is 0. Try 1,3,5.",
       every_n: "Every how many days",
       times_per_week: "How many times",
       monthly: "Day of the month",
@@ -155,7 +155,7 @@ export const COPY = {
     error: "That did not save. Check the values and try again.",
     gameHeading: "Game values",
     gameNote:
-      "These live in src/config.ts so they are reviewed with the code. Edit them there and restart.",
+      "These numbers live in the code so every change is reviewed. Change them in src/config.ts and restart.",
     gameValues: {
       onTrack: "On-track pulse (times combo)",
       pivot: "Pivot pulse",
@@ -175,7 +175,7 @@ export const COPY = {
     heading: "Today, wrapped",
     xp: "XP earned",
     answered: "Check-ins answered",
-    missed: "Missed",
+    missed: "Left unanswered",
     longest: "Longest on-track run",
     tasks: "Tasks finished",
     carry: "Still open",

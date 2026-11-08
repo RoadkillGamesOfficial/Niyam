@@ -1,7 +1,7 @@
 # Handoff — Phase 1: Local Foundation
 
 ## Status
-**Phase 1 complete. Phase 2 implemented (2026-11-08).** The app now runs a full
+**Phase 1 complete. Phase 2 complete, reviewed and voice-passed (2026-11-08).** The app now runs a full
 day: plan with a profile, start the day, check-ins with XP and combo, habits,
 settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
 Verified end to end on 2026-11-08 with the dev server on port 3000:
@@ -212,16 +212,86 @@ timer until the next open, when reconciliation logs what was missed. See
 `docs/decisions.md` for the delivery decision (R1).
 
 ## Open questions before Phase 3
-- Run the reviewer role (`docs/roles/reviewer.md`) as the phase doc requires.
+- Reviewer pass done (2026-11-08, below). It was run by the building agent in a
+  separate pass, so it is a self-review; a genuinely independent read still
+  needs the owner or a fresh session.
 - Phase 2's `plan_item` (a task placed on the timeline) can be added above these
   tables; Phase 1 stores the day link on the task, so nothing needs rewriting.
   Confirm that reading against PDD §10 before building it.
-- Phase 2 needs a decision on the check-in delivery prototype (Risk R1).
+- Risk R1 is decided (browser-first levels, see `docs/decisions.md`); the
+  always-on desktop wrapper is separate, owner-approved work.
 - Decide whether to silence the two warnings above (`type: module`, Turbopack
   trace ignore) or leave them documented.
 - Nothing has been pushed; pushing is the owner's call.
 - Font for the restyle: rounded system stack (recommended, zero assets) or a
   bundled OFL display face committed with its licence?
+
+## Phase 2 acceptance, run end to end (2026-11-08)
+
+Fresh database, production build on port 3000, browser driven directly. Every
+criterion was exercised, not just read.
+
+- **A full day, manually.** Added a heavy and a light task, reordered one, set
+  Low-energy rescue, added four habits, started the day. The order went from
+  Draft→Reply to Reply→Draft and the badge DRAFT→RUNNING. XP then moved on the
+  page as it was earned: 0 → 10 after one On Track answer, combo ×1 → ×1.25.
+- **Habits on the right days.** The daily essential habit synced a task and a
+  pending occurrence; the Sunday weekday habit and the times-per-week habit were
+  recorded `deferred` because Low-energy rescue filters non-essential habits, so
+  only the essential one appeared in the plan; the Mon/Wed/Fri habit was not due
+  on a Sunday and produced no occurrence at all.
+- **Interruption level at Firm.** Forcing a real due slot opened the overlay
+  (`role=dialog`, `aria-modal=true`); answering On Track inside it wrote
+  `pulse.status=answered` and a `pulse_on_track` ledger row of 10, then the
+  overlay closed. Gentle and Standard were verified earlier the same day (card
+  only; one chime plus one notification).
+- **Drift and shrinkage.** Answering Drifted paid 3, reset the combo to ×1, and
+  opened the shrink panel; choosing "Open the file and read one line" created a
+  real task (5 minutes, light) which paid 15 + 5 when finished.
+- **Pause.** Paused, reloaded with an overdue schedule: no card, no overlay, no
+  pulse rows created.
+- **Missed handling.** Resumed with a 45-minute-old schedule at a 5-minute
+  interval: seven slots were backfilled as missed and one stayed pending, and XP
+  did not move (33 before, 43 after answering the pending one).
+- **Restart.** Killed and restarted the server: ten pulses before, ten after
+  (3 answered, 7 missed, 1 pending), same XP, no duplicates.
+- **Day close.** Summary: 76 XP, 4 answered, 7 left unanswered, longest on-track
+  run 2, 1/4 tasks finished, 3 carried. The ledger sums to exactly 76
+  (10+3+15+5+10+13+20), so the 20-point close bonus is counted once.
+- **Settings.** Saved 5 minutes, Firm and no quiet hours; "Saved." appeared and
+  the values survived the restart.
+
+## Reviewer pass (2026-11-08)
+
+- **Blockers:** none.
+- **Should fix:** `src/app/actions.ts` exports two server actions nothing calls
+  (`reconcileNow`, `markHabitDoneFromOccurrence`); each is still a reachable
+  endpoint, so remove them next time the file is touched. `src/db/xp.ts` declares
+  a `task_undone` reason that is never written and an `xpEventsForDay` nothing
+  renders — harmless, but misleading to read. `bringOver` dedupes by title only,
+  so two different old tasks sharing a title carry over as one.
+- **Suggestions:** the check-in panel reuses the unanswered-check-in helper as
+  its idle text, which reads slightly oddly while paused. The `[x]` / `[ ]` task
+  glyphs are Phase 1 terminal leftovers and leave with the restyle.
+- **What works well:** XP is derived from the ledger, and `hasEventForPulse` /
+  `hasTaskCompletionEvent` make paying twice structurally impossible (checked by
+  re-answering a pulse and by toggling a task off and on). Reconciliation is
+  idempotent through the unique `(day_id, due_at)` index, which the restart and
+  the 45-minute backfill both confirm. A quiet slot becomes a quiet pending
+  pulse that never escalates and never ages into a miss.
+- **Verdict:** ready to proceed to Phase 3. Caveat: this pass was done by the
+  same agent that built Phase 2, so it is not an independent review.
+
+## Voice pass (2026-11-08)
+
+Voice written down for the first time in `docs/voice-guide.md`: the voice in one
+page, preferred and avoided words, and example lines for check-ins, drift, empty
+states, quiet hours and errors. Copy edits: "Left unanswered" replaces "Missed"
+on the day close, the helper line says "An unanswered check-in never costs XP",
+the /settings game note is plain English instead of developer-speak, and the
+weekday hint reads "Days as numbers, Sunday is 0. Try 1,3,5." Wording decisions
+are recorded in `docs/decisions.md`. One open item needs the owner: the product
+name and tagline.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;

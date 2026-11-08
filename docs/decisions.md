@@ -332,3 +332,26 @@ multi-machine or sync feature would have to send an explicit offset instead.
 Rollout: five visual-only commits, listed in `docs/design.md`, each green on
 `npm test` and `npm run build` before the next. Phase 1's own docs are left as
 they are, because they accurately record what was built then.
+
+## 2026-11-08 — Phase 2 voice pass: name the event, not the failure
+
+Decision: an unanswered check-in is now called **unanswered** in the interface
+(the day-close row reads "Left unanswered"), not "missed", and the same wording
+is used in the helper under the combo. The configuration note on /settings says
+what the numbers are and where to change them in plain words instead of talking
+about "reviewed with the code". The weekday-detail hint reads "Days as numbers,
+Sunday is 0. Try 1,3,5." The voice itself is written down in
+`docs/voice-guide.md`.
+
+Why: `docs/roles/voice-writer.md` and `docs/knowledge.md` both forbid shaming
+language, and "missed" is the user's word for a failure they did not choose.
+"Unanswered" describes the row without judging it and stays accurate for quiet
+hours, pauses and reconciliation. The config note was the only line in the
+interface written for a developer rather than the person using it.
+
+What it rules out: "missed" as user-facing copy, and any user-facing string that
+names a source file unless editing that file is the user's next action.
+
+Open for the owner: the product name and tagline ("One small day at a time.")
+are the one pair the voice pass cannot approve on its own; see the note at the
+end of `docs/voice-guide.md`.
