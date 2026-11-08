@@ -174,11 +174,12 @@ body {
 }
 
 .task-input {
-  flex: 1;
+  flex: 1 1 16ch;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
+  border: 2px solid var(--wood-300);
+  border-radius: var(--radius-sm);
+  background: var(--parchment-200);
+  box-shadow: inset 0 2px 3px rgba(93, 62, 31, 0.12);
   color: var(--fg);
   font: inherit;
 }
@@ -187,25 +188,47 @@ body {
   color: var(--muted);
 }
 
-.task-input:focus,
-.button:focus-visible,
-.task-toggle:focus-visible {
-  outline: 2px solid var(--accent);
+:where(
+  .task-input,
+  .field input,
+  .field select,
+  .button,
+  .icon-button,
+  .task-toggle,
+  .link
+):focus-visible {
+  outline: 3px solid var(--gold-400);
   outline-offset: 2px;
 }
 
 .button {
   padding: var(--space-2) var(--space-4);
-  border: 0;
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: var(--bg);
+  border: 1px solid var(--leaf-700);
+  border-bottom-width: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--leaf-500);
+  color: var(--parchment-50);
   font: inherit;
+  font-weight: 700;
   cursor: pointer;
+  transition:
+    transform var(--fast) var(--ease),
+    background-color var(--fast) var(--ease);
 }
 
 .button:hover {
-  filter: brightness(1.1);
+  background: var(--leaf-700);
+}
+
+.button:active {
+  transform: translateY(1px);
+  border-bottom-width: 3px;
+  box-shadow: var(--shadow-press);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .task-list {
@@ -216,10 +239,15 @@ body {
 
 .task {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--line);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--wood-300);
+  border-radius: var(--radius-sm);
+}
+
+.task:hover {
+  background: rgba(201, 160, 106, 0.12);
 }
 
 .task:last-child {
@@ -230,19 +258,45 @@ body {
   margin: 0;
 }
 
-/* The checkbox is text, not an input: one form post flips the status. */
+/* A seed, not a checkbox: one form post flips the status, and the done state
+   draws a check with two borders rather than rendering the copy glyph. */
 .task-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
   padding: 0;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  letter-spacing: 0.1em;
+  border: 2px solid var(--wood-500);
+  border-radius: 50%;
+  background: var(--parchment-100);
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
   cursor: pointer;
+  transition:
+    background-color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease);
 }
 
 .task-toggle:hover {
-  color: var(--accent);
+  border-color: var(--leaf-500);
+}
+
+.task-toggle[aria-pressed="true"] {
+  border-color: var(--leaf-700);
+  background: var(--leaf-500);
+}
+
+.task-toggle[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--parchment-50);
+  border-width: 0 2px 2px 0;
+  transform: rotate(42deg);
 }
 
 .task-title {
@@ -310,39 +364,58 @@ body {
 
 .stat-value {
   margin: 0 0 var(--space-1);
-  color: var(--accent);
-  font-size: 1.3rem;
+  color: var(--wood-700);
+  font-size: var(--text-xl);
+  font-weight: 700;
 }
 
 .bar {
-  height: 8px;
+  height: 10px;
   margin-top: var(--space-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--bg);
+  border: 1px solid var(--wood-300);
+  border-radius: var(--radius-pill);
+  background: var(--parchment-200);
   overflow: hidden;
 }
 
 .bar-fill {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--gold-300), var(--gold-400));
 }
 
 .bar-integrity {
-  background: var(--warn);
+  background: linear-gradient(180deg, #8fbf6b, var(--leaf-500));
 }
 
+/* Pinned notice board above the plan. */
 .checkin {
-  margin-top: var(--space-4);
-  padding: var(--space-4);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--panel);
+  position: relative;
+  margin-top: var(--space-6);
+  padding: var(--space-6) var(--space-4) var(--space-4);
+  border: var(--border);
+  border-radius: var(--radius-md);
+  background: var(--parchment-100);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 4px 10px rgba(93, 62, 31, 0.14);
+}
+
+.checkin::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: var(--space-6);
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--wood-500);
+  border-radius: 50%;
+  background: var(--gold-300);
 }
 
 .checkin-question {
   margin: 0 0 var(--space-2);
-  font-size: 1.1rem;
+  color: var(--ink-900);
+  font-size: var(--text-lg);
+  font-weight: 700;
 }
 
 .answer-row {
@@ -353,13 +426,22 @@ body {
 }
 
 .button-alt {
-  background: var(--warn);
+  border-color: #38536d;
+  background: var(--sky-500);
+}
+
+.button-alt:hover {
+  background: #38536d;
 }
 
 .button-quiet {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--fg);
+  border: 1px solid var(--wood-300);
+  background: var(--parchment-50);
+  color: var(--wood-700);
+}
+
+.button-quiet:hover {
+  background: var(--parchment-200);
 }
 
 .field {
@@ -373,10 +455,11 @@ body {
 
 .field input,
 .field select {
-  padding: var(--space-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--wood-300);
+  border-radius: var(--radius-sm);
+  background: var(--parchment-200);
+  box-shadow: inset 0 2px 3px rgba(93, 62, 31, 0.12);
   color: var(--fg);
   font: inherit;
 }
@@ -405,17 +488,21 @@ body {
 }
 
 .icon-button {
-  padding: 0 6px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: none;
-  color: var(--muted);
+  padding: 2px 8px;
+  border: 1px solid var(--wood-300);
+  border-radius: var(--radius-sm);
+  background: var(--parchment-50);
+  color: var(--ink-600);
   font: inherit;
   cursor: pointer;
+  transition:
+    color var(--fast) var(--ease),
+    background-color var(--fast) var(--ease);
 }
 
 .icon-button:hover:not(:disabled) {
-  color: var(--accent);
+  background: var(--parchment-200);
+  color: var(--wood-700);
 }
 
 .icon-button:disabled {
@@ -425,9 +512,12 @@ body {
 
 .current {
   margin: var(--space-3) 0;
-  padding-left: var(--space-3);
-  border-left: 3px solid var(--accent);
-  font-size: 1.1rem;
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--gold-400);
+  border-radius: var(--radius-sm);
+  background: var(--parchment-100);
+  font-size: var(--text-lg);
+  font-weight: 700;
 }
 
 .heatmap {
@@ -442,24 +532,25 @@ body {
 .heat {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
-  background: var(--line);
+  border-radius: 3px;
+  background: var(--parchment-200);
+  box-shadow: inset 0 0 0 1px rgba(154, 107, 66, 0.25);
 }
 
 .heat-1 {
-  background: #2c4a37;
+  background: #d6e6c4;
 }
 
 .heat-2 {
-  background: #3c7a54;
+  background: #a8c98a;
 }
 
 .heat-3 {
-  background: #4fae74;
+  background: #7aab5c;
 }
 
 .heat-4 {
-  background: var(--accent);
+  background: var(--leaf-500);
 }
 
 .notice {
@@ -510,7 +601,23 @@ body {
 }
 
 .small {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 .overlay {
@@ -520,14 +627,17 @@ body {
   display: grid;
   place-items: center;
   padding: var(--space-6);
-  background: rgba(4, 6, 5, 0.88);
+  background: rgba(51, 41, 29, 0.62);
+  backdrop-filter: blur(2px);
 }
 
 .overlay-card {
-  max-width: 40ch;
+  max-width: 42ch;
   padding: var(--space-6);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--panel);
+  border: var(--border);
+  border-bottom-width: 6px;
+  border-radius: var(--radius-lg);
+  background: var(--parchment-50);
+  box-shadow: 0 18px 40px rgba(51, 41, 29, 0.35);
   text-align: center;
 }
