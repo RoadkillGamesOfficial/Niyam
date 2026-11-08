@@ -243,8 +243,28 @@ criterion was exercised, not just read.
 - **Interruption level at Firm.** Forcing a real due slot opened the overlay
   (`role=dialog`, `aria-modal=true`); answering On Track inside it wrote
   `pulse.status=answered` and a `pulse_on_track` ledger row of 10, then the
-  overlay closed. Gentle and Standard were verified earlier the same day (card
-  only; one chime plus one notification).
+  overlay closed.
+
+### Levels and copy re-checked on the committed build (a5b4265)
+
+The first pass recorded the levels, then the voice-pass copy landed afterwards,
+so both were re-run against the committed tree, fresh database, production
+build. A page probe counted `AudioContext.createOscillator` calls and
+`Notification` constructions, with the permission overridden to "granted".
+
+| Run | What was observed |
+|---|---|
+| Gentle, interval 5 | timer fired 16:49:07, `pulse` row created `pending`, card rendered, no overlay, **0 oscillators, 0 notifications** |
+| Standard, interval 5 | timer fired 16:57:08, `pulse` 5 `pending`, card rendered, no overlay, **2 oscillators (one chime), 1 notification** |
+| Firm | pending loud prompt on load opened the overlay, `role=dialog` / `aria-modal=true`, with the answer form inside |
+
+Voice-pass copy observed rendering on the same build: day close reads "Left
+unanswered 7" (no "Missed" row anywhere), the combo helper reads "An unanswered
+check-in never costs XP. It only resets the combo.", /settings reads "These
+numbers live in the code so every change is reviewed. Change them in
+src/config.ts and restart.", and the habit detail hint reads "Days as numbers,
+Sunday is 0. Try 1,3,5." No wording needed changing; the copy was correct when
+it reached the screen.
 - **Drift and shrinkage.** Answering Drifted paid 3, reset the combo to ×1, and
   opened the shrink panel; choosing "Open the file and read one line" created a
   real task (5 minutes, light) which paid 15 + 5 when finished.
