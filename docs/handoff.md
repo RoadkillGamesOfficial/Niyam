@@ -3,7 +3,6 @@
 ## Status
 **Phase 1 complete.** One page adds a task for today, lists today's tasks and
 marks one done. Data lives in `data/discipline.db`. Nothing is pushed.
-
 Verified end to end on 2026-11-08 with the dev server on port 3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
@@ -134,6 +133,14 @@ were rerun at HEAD.
 Verdict: **ready to proceed to Phase 2.** Phase 1 is in scope, its acceptance
 criteria pass on a running app, and nothing outside the phase was built.
 
+## Visual direction (queued, not built)
+The shipped dark monospace styling is the Phase 1 placeholder. The chosen look is
+warm and cozy, Stardew Valley-inspired but not pixel art; the specification,
+tokens and five-commit rollout live in `docs/design.md`, and the reasoning is in
+`docs/decisions.md` (2026-11-08). This is visual-only work: no behaviour, schema
+or copy changes, no new dependencies, no image files. Phase 1's own doc is left
+unchanged because it records what was actually built.
+
 ## Open questions before Phase 2
 - Run the reviewer role (`docs/roles/reviewer.md`) as the phase doc requires.
 - Phase 2's `plan_item` (a task placed on the timeline) can be added above these
@@ -143,6 +150,8 @@ criteria pass on a running app, and nothing outside the phase was built.
 - Decide whether to silence the two warnings above (`type: module`, Turbopack
   trace ignore) or leave them documented.
 - Nothing has been pushed; pushing is the owner's call.
+- Font for the restyle: rounded system stack (recommended, zero assets) or a
+  bundled OFL display face committed with its licence?
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;

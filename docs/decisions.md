@@ -184,3 +184,42 @@ the kind of thing the voice writer may want to change later.
 
 What it rules out: no UI text, punctuation glyphs included, is written directly
 in a component.
+
+## 2026-11-08 — Visual direction: warm, Stardew-inspired, not pixel art
+
+Decision: the interface moves to a cozy farm-sim look — parchment surfaces,
+wooden frames, rounded chunky controls, warm daylight palette, gentle motion,
+gold for rewards — and away from the dark monospace terminal styling Phase 1
+shipped. The full specification is `docs/design.md`.
+
+Why: `docs/PDD.md` §13 already specifies "Stardew Valley-inspired, game-console
+in feel", gamification is a core principle rather than an add-on, and
+`docs/phase-1-foundation.md` called the terminal styling a placeholder whose
+"full design comes later". `docs/knowledge.md` had drifted to saying the style
+was terminal-inspired; that line now matches this decision.
+
+Why not pixel art: the owner wants the game's warm, casual, calming feeling
+without 16-bit graphics. So the game feel comes from material, depth, shape and
+motion (borders, shadows, easing, press feedback) rather than sprites, and no
+pixel fonts or `image-rendering: pixelated` are used.
+
+Constraints this sets:
+- Visual only. It changes no behaviour, schema or copy; every string stays in
+  `src/copy.ts`, and new labels go through the voice writer.
+- No new dependencies and no image files: the look is CSS, with inline SVG only
+  where a CSS shape cannot do the job. That keeps the no-outbound-calls rule and
+  the ask-before-adding rule intact.
+- Colours, radii, durations and type sizes live as CSS custom properties in
+  `src/app/globals.css`; components never hardcode them.
+- Contrast is measured, not eyeballed, and state is never conveyed by colour
+  alone (done tasks also strike through and show a drawn check).
+- A bundled OFL display font is the one outstanding asset question; it needs
+  approval and would be committed locally, never fetched at runtime.
+
+What it rules out: the terminal aesthetic (`> ` prefixes, `[x]`/`[ ]` glyphs,
+monospace body text, near-black background) as anything other than history, and
+any "gamified" visual flourish that ships before Phase 2's mechanics do.
+
+Rollout: five visual-only commits, listed in `docs/design.md`, each green on
+`npm test` and `npm run build` before the next. Phase 1's own docs are left as
+they are, because they accurately record what was built then.

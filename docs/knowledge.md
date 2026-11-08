@@ -9,6 +9,7 @@ A personal productivity companion for ONE user, running entirely on one laptop. 
 ## Current phase
 
 **Phase 1: Local Foundation.** Local Next.js app, local SQLite database, basic schema for tasks and sessions, manual task entry and list.
+Phase 1 is complete and reviewed (2026-11-08). The shipped UI uses placeholder terminal styling; the next work block is the visual restyle described in `docs/design.md`, which comes before Phase 2's screens.
 (Decisions settled 2026-11-05: `node:sqlite`, `node:test`, plain CSS. See `docs/decisions.md`.)
 Exit criteria: a task entered in the UI appears in the local database file and displays back correctly.
 
@@ -56,11 +57,12 @@ Do NOT build features from later phases (check-in timer, XP and combos, AI, insi
 
 ## Tone and voice (applies to all user-facing text)
 
-Direct, warm, lightly playful. Practical coach, never a scold, never clinical. Short plain sentences. No guilt language ("you failed", "you should have"). Errors and empty states always suggest a next step. The visual style is minimalist and terminal-inspired, with a game-console feel.
+Direct, warm, lightly playful. Practical coach, never a scold, never clinical. Short plain sentences. No guilt language ("you failed", "you should have"). Errors and empty states always suggest a next step. The visual style is warm and cozy, Stardew Valley-inspired: parchment and wood, rounded controls, gentle motion, gold for rewards. It is deliberately not pixel art. Tokens and component rules live in `docs/design.md`.
 
 ## Where things live
 
 - `docs/PDD.md`: full product design document (reference, pull sections as needed, do not load all of it every time)
+- `docs/design.md`: visual language, design tokens and component rules for the warm Stardew-inspired look
 - `docs/roles/`: role files, one per working role (builder, reviewer, voice writer). Used when a session opens with "Read @docs/roles/<role>.md".
 - `docs/handoff.md`: current state between sessions
 - `docs/decisions.md`: running log of settled decisions
