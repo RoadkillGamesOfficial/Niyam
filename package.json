@@ -9,7 +9,8 @@
     "dev": "node scripts/next.mjs dev",
     "build": "node scripts/next.mjs build",
     "start": "node scripts/next.mjs start",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "node --test \"src/**/*.test.ts\"",
+    "seed": "node scripts/seed-insights.mjs"
   },
   "dependencies": {
     "next": "^16.4.5",

@@ -61,6 +61,20 @@ export const CONFIG = {
     // One missed day per week does not break a streak (PDD §8.7 assumption).
     gracePerWeek: 1,
   },
+  insights: {
+    // Phase 4. All windows are local calendar days and all rates are 0..1.
+    heatmapDays: 84, // twelve weeks of drift cells
+    historyDays: 112, // completion by profile
+    trendWeeks: 8,
+    habitWindowDays: 56,
+    peakWindowDays: 56,
+    peakMinSamples: 3, // one lucky hour is not a peak
+    peakMinRate: 0.6,
+    peakMaxWindows: 3,
+    habitMinDecided: 4, // do not advise from one or two decisions
+    habitStruggleRate: 0.5,
+    scheduleBreakMinutes: 5,
+  },
   ai: {
     // Phase 3. Ollama is reached on loopback only: the URL is checked before any
     // request, and a non-local host throws (ARCH-1). The default model is small

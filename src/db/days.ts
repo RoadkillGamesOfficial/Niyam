@@ -37,6 +37,12 @@ export function getDayByDate(db: DatabaseSync, date: string): Day | undefined {
     .get(date) as unknown as Day | undefined;
 }
 
+export function getDayById(db: DatabaseSync, id: number): Day | undefined {
+  return db
+    .prepare(`SELECT ${COLUMNS} FROM day WHERE id = ?`)
+    .get(id) as unknown as Day | undefined;
+}
+
 /**
  * Returns the day row for a local date, creating it on first use. Days are
  * created lazily so the app has no startup step and no background job.

@@ -13,10 +13,11 @@ export type Settings = {
   quiet_end: string | null;
   ai_enabled: number;
   ai_model: string;
+  peak_windows_enabled: number;
 };
 
 const COLUMNS =
-  "checkin_interval_minutes, interruption_level, quiet_start, quiet_end, ai_enabled, ai_model";
+  "checkin_interval_minutes, interruption_level, quiet_start, quiet_end, ai_enabled, ai_model, peak_windows_enabled";
 const TIME_SHAPE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export function getSettings(db: DatabaseSync): Settings {
@@ -33,6 +34,7 @@ export function getSettings(db: DatabaseSync): Settings {
     quiet_end: null,
     ai_enabled: 1,
     ai_model: CONFIG.ai.defaultModel,
+    peak_windows_enabled: 1,
   };
   return fallback;
 }
@@ -70,6 +72,17 @@ export function updateSettings(db: DatabaseSync, input: SettingsInput): Settings
  * The AI switch and model name (PDD §8.6). The address stays in src/config.ts,
  * so this can never point the app at another machine.
  */
+/** INS-3: peak-window planning is the user's switch, defaulting on. */
+export function updateInsightSettings(
+  db: DatabaseSync,
+  input: { peakWindowsEnabled: boolean },
+): Settings {
+  db.prepare("UPDATE settings SET peak_windows_enabled = ? WHERE id = 1").run(
+    input.peakWindowsEnabled ? 1 : 0,
+  );
+  return getSettings(db);
+}
+
 export function updateAiSettings(
   db: DatabaseSync,
   input: { enabled: boolean; model: string },
