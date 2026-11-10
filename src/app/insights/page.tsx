@@ -97,9 +97,13 @@ export default async function InsightsPage() {
 
   const lastWeekLines: string[] = [];
   if (lastWeek.activeDays > 0) {
-    lastWeekLines.push(COPY.insights.weekLine(lastWeek.activeDays, lastWeek.tasksDone));
+    lastWeekLines.push(
+      COPY.insights.lastWeekLine(lastWeek.activeDays, lastWeek.tasksDone),
+    );
     if (lastWeek.consistency !== null) {
-      lastWeekLines.push(COPY.insights.weekConsistency(percent(lastWeek.consistency)));
+      lastWeekLines.push(
+        COPY.insights.lastWeekConsistency(percent(lastWeek.consistency)),
+      );
     }
     if (lastWeek.bestDay) {
       lastWeekLines.push(

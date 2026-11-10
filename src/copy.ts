@@ -266,8 +266,12 @@ export const COPY = {
     xpLine: (xp: number) => `${xp} XP earned today.`,
     weekLine: (days: number, tasks: number) =>
       `${tasks} tasks finished across ${days} active days this week.`,
+    lastWeekLine: (days: number, tasks: number) =>
+      `${tasks} tasks finished across ${days} active days last week.`,
     weekEmpty: "This week is still open. A single check-in starts the pattern.",
     weekConsistency: (rate: string) => `${rate} of check-ins answered this week.`,
+    lastWeekConsistency: (rate: string) =>
+      `${rate} of check-ins answered last week.`,
     bestDay: (day: string, tasks: number) =>
       `${day} was the steadiest day, with ${tasks} tasks finished.`,
     heatHeading: "When drift shows up",
