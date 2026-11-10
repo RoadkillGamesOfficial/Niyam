@@ -65,6 +65,9 @@ export default async function ReframePage({
             <Link className="link" href="/">
               {COPY.nav.home}
             </Link>
+            <Link className="link" href="/insights">
+              {COPY.nav.insights}
+            </Link>
             <Link className="link" href="/settings">
               {COPY.nav.settings}
             </Link>

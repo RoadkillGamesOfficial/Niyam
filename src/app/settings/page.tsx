@@ -4,7 +4,7 @@ import { COPY } from "@/copy";
 import { getDatabase } from "@/db/index";
 import { getSettings } from "@/db/settings";
 import { checkLocalModel, saveAiSettings } from "../ai-actions";
-import { saveSettings } from "../actions";
+import { saveInsightSettings, saveSettings } from "../actions";
 
 // Settings are read and written through the same data-access functions the tests
 // use. Gamification numbers are shown, not edited: they live in src/config.ts.
@@ -36,6 +36,9 @@ export default async function SettingsPage({
             </Link>
             <Link className="link" href="/reframe">
               {COPY.reframe.nav}
+            </Link>
+            <Link className="link" href="/insights">
+              {COPY.nav.insights}
             </Link>
           </span>
         </div>
@@ -125,6 +128,29 @@ export default async function SettingsPage({
         <form action={checkLocalModel} style={{ marginTop: 12 }}>
           <button className="button button-quiet" type="submit">
             {COPY.ai.check}
+          </button>
+        </form>
+      </section>
+
+      <section className="panel" aria-labelledby="insight-settings">
+        <h2 className="label" id="insight-settings">
+          {COPY.insights.settingsHeading}
+        </h2>
+        <p className="hint small">{COPY.insights.settingsLede}</p>
+        <form className="settings-form" action={saveInsightSettings} style={{ marginTop: 12 }}>
+          <label className="field">
+            <span>
+              <input
+                type="checkbox"
+                name="peakWindowsEnabled"
+                defaultChecked={settings.peak_windows_enabled === 1}
+              />{" "}
+              {COPY.insights.peakToggle}
+            </span>
+          </label>
+          <p className="hint small">{COPY.insights.peakHint}</p>
+          <button className="button" type="submit">
+            {COPY.settings.save}
           </button>
         </form>
       </section>

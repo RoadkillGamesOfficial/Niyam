@@ -1,4 +1,5 @@
 import { CONFIG } from "../config.ts";
+import type { PeakWindow } from "../game/insights.ts";
 import { ollamaChat, type ChatFn } from "./ollama.ts";
 import { fillPrompt, loadPrompt } from "./prompts.ts";
 import { parsePlannerOutput, type PlannerItem } from "./validate.ts";
@@ -38,6 +39,17 @@ export function estimateFor(title: string): PlannerItem {
  * stripped, long paragraphs cut into sentences. It is deliberately plain — the
  * user reviews everything anyway.
  */
+/** Phase 4: tell the model where the local history says focus is strongest. */
+export function peakGuidance(peaks: PeakWindow[]): string {
+  if (peaks.length === 0) {
+    return "No peak window has enough history yet. Keep the user's order.";
+  }
+  const windows = peaks
+    .map((peak) => `${peak.startHour}:00-${peak.endHour}:00`)
+    .join(", ");
+  return `Peak windows from local history: ${windows}. When the order allows, place heavy tasks inside a peak window.`;
+}
+
 export function fallbackPlan(text: string): PlannerItem[] {
   const chunks: string[] = [];
   for (const line of text.split(/\r?\n/)) {
@@ -74,7 +86,7 @@ export function fallbackPlan(text: string): PlannerItem[] {
 }
 
 export async function generatePlan(
-  input: { text: string; profile: string },
+  input: { text: string; profile: string; peaks?: PeakWindow[] },
   deps: { chat?: ChatFn; model: string },
 ): Promise<PlanGeneration> {
   const chat = deps.chat ?? ollamaChat;
@@ -82,6 +94,7 @@ export async function generatePlan(
     maxItems: String(CONFIG.ai.maxPlanItems),
     profile: input.profile,
     profileGuidance: PROFILE_GUIDANCE[input.profile] ?? PROFILE_GUIDANCE.maintenance,
+    peakGuidance: peakGuidance(input.peaks ?? []),
   });
 
   try {

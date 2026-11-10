@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { CONFIG } from "../config.ts";
 import { AiConfigError, assertLoopback } from "./ollama.ts";
 import { fillPrompt, loadPrompt } from "./prompts.ts";
-import { estimateFor, fallbackPlan, generatePlan } from "./planner.ts";
+import { estimateFor, fallbackPlan, generatePlan, peakGuidance } from "./planner.ts";
 import { fallbackReframe, generateReframe, safetyResponse } from "./reframe.ts";
 import { fallbackOrder, generateReplan } from "./replan.ts";
 import { detectDistress } from "./safety.ts";
@@ -184,10 +184,33 @@ describe("offline planner fallback", () => {
     assert.equal(failed.items.length, 2);
   });
 
+  it("passes detected peak windows into the planner prompt", async () => {
+    let system = "";
+    const result = await generatePlan(
+      {
+        text: "Write the report",
+        profile: "maintenance",
+        peaks: [{ startHour: 9, endHour: 11, score: 0.82, samples: 9 }],
+      },
+      {
+        model: "test",
+        chat: async (request) => {
+          system = request.system;
+          return { tasks: [{ title: "Write the report", minutes: 30, load: "heavy" }] };
+        },
+      },
+    );
+    assert.equal(result.fallback, false);
+    assert.match(system, /Peak windows from local history: 9:00-11:00/);
+    assert.match(system, /heavy tasks inside a peak window/);
+    assert.match(peakGuidance([]), /No peak window/);
+  });
+
   it("parses the planner prompt and fills its placeholders", () => {
     const prompt = loadPrompt("planner");
     assert.match(prompt, /JSON only/);
     assert.match(prompt, /\{\{profile\}\}/);
+    assert.match(prompt, /\{\{peakGuidance\}\}/);
     const filled = fillPrompt("A {{one}} B {{two}}", { one: "1" });
     assert.equal(filled, "A 1 B {{two}}");
   });

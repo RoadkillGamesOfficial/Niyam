@@ -13,3 +13,4 @@ Rules:
 
 Daily profile: {{profile}}.
 {{profileGuidance}}
+{{peakGuidance}}

@@ -23,9 +23,15 @@ import {
   type NewHabit,
 } from "@/db/habits";
 import { addPlanItem, confirmPlan, listPlan, movePlanItem, syncPlanWithTasks } from "@/db/plan";
+import { schedulePlanForPeaks } from "@/db/schedule";
 import { answerPulse, listPulsesForDay, type PulseResponse } from "@/db/pulses";
 import { getPlayerState } from "@/db/player";
-import { getSettings, updateSettings, type InterruptionLevel } from "@/db/settings";
+import {
+  getSettings,
+  updateInsightSettings,
+  updateSettings,
+  type InterruptionLevel,
+} from "@/db/settings";
 import { createTask, getTask, setTaskStatus } from "@/db/tasks";
 import { addXpEvent, hasEventForPulse, hasMicroActionEvent, hasTaskCompletionEvent } from "@/db/xp";
 import { pulseXp, taskXp, type PulseResponse as RuleResponse } from "@/game/rules";
@@ -62,6 +68,7 @@ export async function addTask(formData: FormData): Promise<void> {
     cognitiveLoad: parseLoad(String(formData.get("cognitiveLoad") ?? "medium")),
   });
   addPlanItem(db, day.id, task.id);
+  schedulePlanForPeaks(db, day.id);
   redirect("/");
 }
 
@@ -125,6 +132,7 @@ export async function moveTask(formData: FormData): Promise<void> {
   }
   const { db, day } = today();
   movePlanItem(db, day.id, taskId, direction);
+  schedulePlanForPeaks(db, day.id);
   redirect("/");
 }
 
@@ -145,6 +153,7 @@ export async function startDay(): Promise<void> {
   confirmPlan(db, day.id, stamp());
   const refreshed = getOrCreateDayForDate(db, date);
   reconcileCheckins(db, refreshed, settings);
+  schedulePlanForPeaks(db, day.id);
   redirect("/");
 }
 
@@ -229,6 +238,7 @@ export async function shrinkTask(formData: FormData): Promise<void> {
   });
   db.prepare("UPDATE task SET parent_task_id = ? WHERE id = ?").run(parent.id, tiny.id);
   addPlanItem(db, parent.day_id, tiny.id);
+  schedulePlanForPeaks(db, parent.day_id);
   redirect("/");
 }
 
@@ -278,6 +288,7 @@ export async function addHabit(formData: FormData): Promise<void> {
         date: new Date(`${date}T12:00:00`),
         profile: (day.profile ?? "maintenance") as "sprinting" | "maintenance" | "low_energy",
       });
+      schedulePlanForPeaks(db, day.id);
     }
   } catch {
     redirect("/?habitError=1");
@@ -321,6 +332,18 @@ export async function saveSettings(formData: FormData): Promise<void> {
   } catch {
     redirect("/settings?error=1");
   }
+  redirect("/settings?saved=1");
+}
+
+export async function saveInsightSettings(formData: FormData): Promise<void> {
+  const db = getDatabase();
+  updateInsightSettings(db, {
+    peakWindowsEnabled: formData.get("peakWindowsEnabled") === "on",
+  });
+  // Apply the switch at once: turning it off removes suggested times, turning it
+  // on re-times the current day without waiting for the next plan edit.
+  const day = getOrCreateDayForDate(db, localDateString());
+  schedulePlanForPeaks(db, day.id);
   redirect("/settings?saved=1");
 }
 
@@ -410,6 +433,7 @@ export async function bringOver(formData: FormData): Promise<void> {
       copy.id,
     );
     addPlanItem(db, day.id, copy.id);
+    schedulePlanForPeaks(db, day.id);
   }
   redirect("/");
 }

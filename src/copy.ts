@@ -11,6 +11,7 @@ export const COPY = {
   nav: {
     home: "Today",
     settings: "Settings",
+    insights: "Insights",
     homeHint: "Back to today",
   },
   home: {
@@ -243,6 +244,79 @@ export const COPY = {
       comboStep: "Combo step",
       comboCap: "Combo cap",
     },
+  },
+  insights: {
+    heading: "The mirror",
+    lede: "The patterns your own days have made. They are observations, not a verdict.",
+    summaryHeading: "This week",
+    lastWeekHeading: "Last week",
+    todayHeading: "Today",
+    noData: "No history yet. A few days of check-ins will start the picture.",
+    blankDay: "Today is still a blank page. One small task is enough to start.",
+    tasksLine: (done: number, total: number) =>
+      `${done} of ${total} tasks finished today.`,
+    noTasks: "No tasks planned today yet.",
+    checkinsLine: (answered: number, onTrack: number) =>
+      `${answered} check-ins answered today, ${onTrack} on track.`,
+    noCheckins: "No check-ins answered today yet.",
+    driftLine: (drifts: number) =>
+      drifts === 1
+        ? "One moment drifted today. That is information, not a verdict."
+        : `${drifts} moments drifted today. That is information, not a verdict.`,
+    xpLine: (xp: number) => `${xp} XP earned today.`,
+    weekLine: (days: number, tasks: number) =>
+      `${tasks} tasks finished across ${days} active days this week.`,
+    weekEmpty: "This week is still open. A single check-in starts the pattern.",
+    weekConsistency: (rate: string) => `${rate} of check-ins answered this week.`,
+    bestDay: (day: string, tasks: number) =>
+      `${day} was the steadiest day, with ${tasks} tasks finished.`,
+    heatHeading: "When drift shows up",
+    heatLede:
+      "Darker squares are hours with more drift. Empty squares had no check-ins.",
+    heatCell: (day: string, hour: number, drifts: number) =>
+      `${day} ${String(hour).padStart(2, "0")}:00 · ${drifts} drift moment${drifts === 1 ? "" : "s"}`,
+    heatEmptyCell: (day: string, hour: number) =>
+      `${day} ${String(hour).padStart(2, "0")}:00 · no check-ins`,
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    profileHeading: "Which energy settings work",
+    profileLede: "Task completion under the energy you chose that morning.",
+    profileLine: (done: number, total: number, rate: string) =>
+      `${done} of ${total} tasks · ${rate}`,
+    profileEmpty: "No tasks under this setting yet.",
+    trendsHeading: "Week by week",
+    trendsLede:
+      "Consistency is the share of check-ins answered. Combo is the longest on-track run. Integrity blends the two.",
+    tableWeek: "Week",
+    tableConsistency: "Consistency",
+    tableCombo: "Longest combo",
+    tableIntegrity: "Integrity",
+    noValue: "—",
+    habitsHeading: "Habits",
+    habitsLede: "Recent due days, with a gentle next step where one needs it.",
+    habitLine: (done: number, decided: number, rate: string) =>
+      `${done} of ${decided} recent due days · ${rate}`,
+    habitNoData: "No recent due days yet.",
+    habitStreak: (days: number) => `${days} day streak`,
+    habitPaused: "Paused",
+    suggestionShrink: "Try a five-minute version.",
+    suggestionReschedule: "Give it a time that fits your better hours.",
+    peaksHeading: "Peak windows",
+    peaksLede:
+      "Hours when your check-ins tend to go well. When this is on, the planner places heavy work here.",
+    peaksEmpty: "No clear peak yet. A little more history will find one.",
+    peakWindow: (start: string, end: string, rate: string) =>
+      `${start}:00–${end}:00 · ${rate} on track`,
+    peaksOn: "Peak-window planning is on.",
+    peaksOff: "Peak-window planning is off.",
+    settingsLink: "Change this in Settings",
+    planTimes: "Start times are suggestions from your peak windows.",
+    settingsHeading: "Insights",
+    settingsLede:
+      "The mirror reads your own history. You can turn peak-window planning off at any time.",
+    peakToggle: "Place heavy work in peak windows",
+    peakHint:
+      "When this is off, planning keeps its usual order and no suggested times are added.",
+    emptyHabits: "No habits yet. Add one you want to keep.",
   },
   dayClose: {
     close: "Close the day",

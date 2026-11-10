@@ -969,3 +969,210 @@ body {
   box-shadow: 0 18px 40px rgba(51, 41, 29, 0.35);
   text-align: center;
 }
+
+/* Phase 4: the mirror. The heat grid is a calendar board, not a chart library;
+   every colour comes from the existing palette so it belongs to the same room. */
+.insights-shell .panel {
+  margin-top: var(--space-4);
+}
+
+.insight-summary {
+  margin-top: var(--space-2);
+}
+
+.observation-list {
+  margin: 0 0 var(--space-4);
+  padding-left: 1.1rem;
+}
+
+.observation-list li {
+  margin: var(--space-1) 0;
+}
+
+.drift-board {
+  margin-top: var(--space-4);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.drift-grid {
+  display: grid;
+  grid-template-columns: 2.4rem repeat(24, minmax(14px, 1fr));
+  gap: 3px;
+  min-width: 680px;
+  align-items: center;
+}
+
+.drift-hour {
+  color: var(--muted);
+  font-size: 0.65rem;
+  text-align: center;
+}
+
+.drift-weekday {
+  color: var(--muted);
+  font-size: 0.7rem;
+  padding-right: var(--space-1);
+}
+
+.drift-cell {
+  display: block;
+  aspect-ratio: 1;
+  min-height: 12px;
+  border: 1px solid rgba(109, 71, 38, 0.1);
+  border-radius: 3px;
+  background: var(--parchment-200);
+}
+
+.drift-1 {
+  background: #e7cf9c;
+}
+
+.drift-2 {
+  background: var(--gold-300);
+}
+
+.drift-3 {
+  background: #c98751;
+}
+
+.drift-4 {
+  background: var(--berry-500);
+}
+
+.profile-list,
+.habit-insights,
+.peak-list {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr) minmax(9rem, auto);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-row:last-child {
+  border-bottom: 0;
+}
+
+.profile-name {
+  font-weight: 700;
+}
+
+.profile-bar,
+.trend-bar {
+  display: inline-block;
+  height: 8px;
+  border: 1px solid var(--wood-300);
+  border-radius: var(--radius-pill);
+  background: var(--parchment-200);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.profile-bar {
+  width: 100%;
+}
+
+.profile-fill,
+.trend-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, #8fbf6b, var(--leaf-500));
+}
+
+.profile-rate {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: right;
+}
+
+.table-scroll {
+  margin-top: var(--space-3);
+  overflow-x: auto;
+}
+
+.trend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.trend-table th,
+.trend-table td {
+  padding: var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.trend-table thead th {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.trend-table tbody th {
+  font-weight: 600;
+}
+
+.trend-bar {
+  width: 4.5rem;
+  margin-right: var(--space-2);
+}
+
+.habit-insight {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.habit-insight:last-child {
+  border-bottom: 0;
+}
+
+.habit-insight-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.suggestion {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--gold-400);
+  background: var(--parchment-100);
+  font-size: var(--text-sm);
+}
+
+.peak-window {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+
+.peak-window:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .profile-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profile-bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .profile-rate {
+    text-align: right;
+  }
+}

@@ -125,6 +125,9 @@ export default async function Home({
             <Link className="link" href="/reframe">
               {COPY.reframe.nav}
             </Link>
+            <Link className="link" href="/insights">
+              {COPY.nav.insights}
+            </Link>
             <Link className="link" href="/settings">
               {COPY.nav.settings}
             </Link>
@@ -514,6 +517,7 @@ export default async function Home({
                   </form>
                   <span className="task-title">{item.title}</span>
                   <span className="task-meta">
+                    {item.planned_start ? `${item.planned_start} · ` : ""}
                     {COPY.task.loads[item.cognitive_load]}
                     {item.habit_id ? ` · ${COPY.task.habitTag}` : ""}
                   </span>
@@ -562,6 +566,10 @@ export default async function Home({
             })}
           </ul>
         )}
+
+        {plan.some((item) => item.planned_start) ? (
+          <p className="hint small">{COPY.insights.planTimes}</p>
+        ) : null}
 
         {day.plan_status === "draft" ? (
           <div style={{ marginTop: 16 }}>

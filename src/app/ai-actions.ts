@@ -26,6 +26,8 @@ import {
   type ProposalEdit,
 } from "@/db/plan-proposals";
 import { addPlanItem, currentPlanItem, listPlan, reorderOpenItems } from "@/db/plan";
+import { schedulePlanForPeaks } from "@/db/schedule";
+import { getPeakWindows } from "@/db/insights";
 import { listPulsesForDay } from "@/db/pulses";
 import { getSettings, updateAiSettings } from "@/db/settings";
 import { createTask, getTask } from "@/db/tasks";
@@ -89,8 +91,10 @@ export async function proposePlan(formData: FormData): Promise<void> {
     redirect("/?aiOff=1");
   }
 
+  const peaks =
+    settings.peak_windows_enabled === 1 ? getPeakWindows(db) : [];
   const result = await generatePlan(
-    { text, profile: day.profile ?? "maintenance" },
+    { text, profile: day.profile ?? "maintenance", peaks },
     { model: settings.ai_model },
   );
 
@@ -132,6 +136,7 @@ export async function acceptPlanProposal(formData: FormData): Promise<void> {
     load: parseLoad(String(formData.get(`load-${item.id}`) ?? item.cognitive_load)),
   }));
   acceptProposal(db, proposalId, edits);
+  schedulePlanForPeaks(db, day.id);
   redirect("/?added=1");
 }
 
@@ -284,6 +289,7 @@ export async function acceptMicroAction(formData: FormData): Promise<void> {
   db.prepare("UPDATE task SET brain_dump_id = ? WHERE id = ?").run(dumpId, task.id);
   addPlanItem(db, day.id, task.id);
   setBrainDumpTask(db, dumpId, task.id);
+  schedulePlanForPeaks(db, day.id);
   redirect(`/reframe?dump=${dumpId}&added=1`);
 }
 
@@ -315,6 +321,7 @@ export async function aiShrinkTask(formData: FormData): Promise<void> {
     parentTaskId: parent.id,
   });
   addPlanItem(db, parent.day_id, tiny.id);
+  schedulePlanForPeaks(db, parent.day_id);
   redirect("/?shrunk=1");
 }
 
@@ -357,6 +364,7 @@ export async function replanWithAi(formData: FormData): Promise<void> {
     day.id,
     result.order.map((index) => open[index].task_id),
   );
+  schedulePlanForPeaks(db, day.id);
   redirect(result.fallback ? "/?replanned=1&replanFallback=1" : "/?replanned=1");
 }
 
