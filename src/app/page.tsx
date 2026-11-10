@@ -7,6 +7,7 @@ import { getDatabase } from "@/db/index";
 import { listHabits, occurrenceForTask, streakFor } from "@/db/habits";
 import { getHeatMap, getPlayerState } from "@/db/player";
 import { listPlan, planProgress } from "@/db/plan";
+import { latestProposedProposal, proposalItems } from "@/db/plan-proposals";
 import { listPulsesForDay, pendingPulse } from "@/db/pulses";
 import { getSettings } from "@/db/settings";
 import { listOpenTasksBefore } from "@/db/tasks";
@@ -14,6 +15,14 @@ import { xpForDay } from "@/db/xp";
 import { slotKey } from "@/game/pulses";
 import { localDateString } from "@/time";
 import { CheckInWatcher } from "./check-in";
+import {
+  acceptPlanProposal,
+  aiShrinkTask,
+  discardPlanProposal,
+  proposePlan,
+  replanWithAi,
+} from "./ai-actions";
+import { PendingButton } from "./pending-button";
 import {
   addHabit,
   addTask,
@@ -23,7 +32,6 @@ import {
   closeDayAction,
   moveTask,
   pauseCheckins,
-  replanRest,
   resumeCheckins,
   setProfile,
   shrinkTask,
@@ -50,7 +58,17 @@ type Summary = {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ shrink?: string; habitError?: string }>;
+  searchParams: Promise<{
+    shrink?: string;
+    habitError?: string;
+    proposal?: string;
+    added?: string;
+    shrunk?: string;
+    shapeError?: string;
+    aiOff?: string;
+    replanned?: string;
+    replanFallback?: string;
+  }>;
 }) {
   const params = await searchParams;
   const db = getDatabase();
@@ -73,6 +91,9 @@ export default async function Home({
   const paused = isPaused(db, day.id);
   const habits = listHabits(db);
   const carried = day.plan_status === "closed" ? [] : listOpenTasksBefore(db, date, day.id, 5);
+  const proposal =
+    day.plan_status === "closed" ? undefined : latestProposedProposal(db, day.id);
+  const proposedItems = proposal ? proposalItems(db, proposal.id) : [];
   const heat = getHeatMap(db, 84);
   const todayXp = xpForDay(db, day.id);
   const summary: Summary | null = day.summary
@@ -100,9 +121,14 @@ export default async function Home({
       <header className="masthead">
         <div className="masthead-top">
           <h1 className="wordmark">{COPY.home.title}</h1>
-          <Link className="link" href="/settings">
-            {COPY.nav.settings}
-          </Link>
+          <span className="header-links">
+            <Link className="link" href="/reframe">
+              {COPY.reframe.nav}
+            </Link>
+            <Link className="link" href="/settings">
+              {COPY.nav.settings}
+            </Link>
+          </span>
         </div>
         <p className="lede">{COPY.home.lede}</p>
         <p className="hint">
@@ -116,6 +142,17 @@ export default async function Home({
           </span>
         </p>
       </header>
+
+      {params.added ? <p className="notice">{COPY.ai.added}</p> : null}
+      {params.shrunk ? <p className="notice">{COPY.ai.shrinkNotice}</p> : null}
+      {params.shapeError ? (
+        <p className="notice notice-warn">{COPY.ai.shapeError}</p>
+      ) : null}
+      {params.aiOff ? <p className="notice notice-warn">{COPY.ai.off}</p> : null}
+      {params.replanned ? <p className="notice">{COPY.ai.replanned}</p> : null}
+      {params.replanFallback ? (
+        <p className="notice notice-warn">{COPY.ai.replanFallback}</p>
+      ) : null}
 
       <section className="stats" aria-label={COPY.progress.levelLabel}>
         <div className="stat">
@@ -256,10 +293,12 @@ export default async function Home({
                   </button>
                 </form>
               )}
-              <form action={replanRest}>
-                <button className="button button-quiet" type="submit">
-                  {COPY.plan.replan}
-                </button>
+              <form action={replanWithAi}>
+                <PendingButton
+                  className="button button-quiet"
+                  label={COPY.plan.replan}
+                  busy={COPY.ai.busy}
+                />
               </form>
               <form action={closeDayAction}>
                 <button className="button button-quiet" type="submit">
@@ -272,17 +311,38 @@ export default async function Home({
               <div className="checkin">
                 <p className="checkin-question">{COPY.checkin.driftedHeading}</p>
                 <p className="hint small">{COPY.checkin.driftedLede}</p>
-                <div className="answer-row">
-                  {COPY.checkin.microActions.map((action) => (
-                    <form action={shrinkTask} key={action}>
-                      <input type="hidden" name="taskId" value={current.task_id} />
-                      <input type="hidden" name="microAction" value={action} />
-                      <button className="button button-quiet" type="submit">
-                        {action}
-                      </button>
-                    </form>
-                  ))}
-                </div>
+                <p className="hint small">
+                  <Link className="link" href="/reframe">
+                    {COPY.reframe.fromDrift}
+                  </Link>
+                </p>
+                {settings.ai_enabled === 1 ? (
+                  <form action={aiShrinkTask} style={{ marginTop: 12 }}>
+                    <input type="hidden" name="taskId" value={current.task_id} />
+                    <PendingButton
+                      className="button"
+                      label={COPY.ai.askSmaller}
+                      busy={COPY.ai.busy}
+                    />
+                  </form>
+                ) : null}
+                <details
+                  className="preset-steps"
+                  open={settings.ai_enabled !== 1}
+                >
+                  <summary className="hint small">{COPY.ai.presetToggle}</summary>
+                  <div className="answer-row">
+                    {COPY.checkin.microActions.map((action) => (
+                      <form action={shrinkTask} key={action}>
+                        <input type="hidden" name="taskId" value={current.task_id} />
+                        <input type="hidden" name="microAction" value={action} />
+                        <button className="button button-quiet" type="submit">
+                          {action}
+                        </button>
+                      </form>
+                    ))}
+                  </div>
+                </details>
               </div>
             ) : null}
 
@@ -322,6 +382,26 @@ export default async function Home({
               </button>
             </form>
             <p className="hint small">{COPY.home.profileHint}</p>
+            {settings.ai_enabled === 1 ? (
+              <form className="settings-form" action={proposePlan} style={{ marginTop: 16 }}>
+                <label className="field">
+                  <span>{COPY.ai.shapeHeading}</span>
+                  <textarea
+                    name="source"
+                    rows={4}
+                    maxLength={CONFIG.ai.maxInputChars}
+                    placeholder={COPY.ai.shapePlaceholder}
+                    required
+                  />
+                </label>
+                <p className="hint small">{COPY.ai.shapeHint}</p>
+                <PendingButton
+                  className="button button-quiet"
+                  label={COPY.ai.shapeButton}
+                  busy={COPY.ai.busy}
+                />
+              </form>
+            ) : null}
           </>
         ) : null}
 
@@ -345,6 +425,69 @@ export default async function Home({
               {COPY.task.addButton}
             </button>
           </form>
+        ) : null}
+
+        {proposal ? (
+          <div className="proposal-review">
+            <form action={acceptPlanProposal}>
+              <input type="hidden" name="proposalId" value={proposal.id} />
+              <p className="label">{COPY.ai.reviewHeading}</p>
+              <p className="hint small">{COPY.ai.reviewLede}</p>
+              {proposal.fallback === 1 ? (
+                <p className="notice notice-warn">{COPY.ai.fallbackNotice}</p>
+              ) : null}
+              <ul className="proposal-list">
+                {proposedItems.map((item) => (
+                  <li className="proposal-item" key={item.id}>
+                    <input
+                      type="checkbox"
+                      name={`include-${item.id}`}
+                      defaultChecked
+                      aria-label={`${COPY.ai.itemTitle}: ${item.title}`}
+                    />
+                    <input
+                      className="task-input"
+                      type="text"
+                      name={`title-${item.id}`}
+                      defaultValue={item.title}
+                      maxLength={CONFIG.tasks.maxTitleLength}
+                      aria-label={COPY.ai.itemTitle}
+                    />
+                    <input
+                      className="task-input proposal-minutes"
+                      type="number"
+                      name={`minutes-${item.id}`}
+                      defaultValue={item.estimated_minutes ?? 15}
+                      min={5}
+                      max={180}
+                      aria-label={COPY.ai.itemMinutes}
+                    />
+                    <select
+                      className="task-input proposal-load"
+                      name={`load-${item.id}`}
+                      defaultValue={item.cognitive_load}
+                      aria-label={COPY.ai.itemLoad}
+                    >
+                      <option value="light">{COPY.task.loads.light}</option>
+                      <option value="medium">{COPY.task.loads.medium}</option>
+                      <option value="heavy">{COPY.task.loads.heavy}</option>
+                    </select>
+                  </li>
+                ))}
+              </ul>
+              <div className="answer-row">
+                <button className="button" type="submit">
+                  {COPY.ai.accept}
+                </button>
+              </div>
+            </form>
+            <form action={discardPlanProposal}>
+              <input type="hidden" name="proposalId" value={proposal.id} />
+              <button className="button button-quiet" type="submit">
+                {COPY.ai.discard}
+              </button>
+            </form>
+          </div>
         ) : null}
 
         {plan.length === 0 ? (

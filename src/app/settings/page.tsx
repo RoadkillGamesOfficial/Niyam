@@ -3,6 +3,7 @@ import { CONFIG } from "@/config";
 import { COPY } from "@/copy";
 import { getDatabase } from "@/db/index";
 import { getSettings } from "@/db/settings";
+import { checkLocalModel, saveAiSettings } from "../ai-actions";
 import { saveSettings } from "../actions";
 
 // Settings are read and written through the same data-access functions the tests
@@ -13,7 +14,12 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string; error?: string }>;
+  searchParams: Promise<{
+    saved?: string;
+    error?: string;
+    ai?: string;
+    aiError?: string;
+  }>;
 }) {
   const params = await searchParams;
   const db = getDatabase();
@@ -24,15 +30,27 @@ export default async function SettingsPage({
       <header className="masthead">
         <div className="masthead-top">
           <h1 className="wordmark">{COPY.settings.heading}</h1>
-          <Link className="link" href="/">
-            {COPY.nav.home}
-          </Link>
+          <span className="header-links">
+            <Link className="link" href="/">
+              {COPY.nav.home}
+            </Link>
+            <Link className="link" href="/reframe">
+              {COPY.reframe.nav}
+            </Link>
+          </span>
         </div>
         <p className="lede">{COPY.settings.intervalHint}</p>
       </header>
 
       {params.saved ? <p className="notice">{COPY.settings.saved}</p> : null}
       {params.error ? <p className="notice notice-warn">{COPY.settings.error}</p> : null}
+      {params.aiError ? (
+        <p className="notice notice-warn">{COPY.ai.modelError}</p>
+      ) : null}
+      {params.ai === "ok" ? <p className="notice">{COPY.ai.ok}</p> : null}
+      {params.ai === "down" ? (
+        <p className="notice notice-warn">{COPY.ai.down}</p>
+      ) : null}
 
       <section className="panel" aria-labelledby="checkin-settings">
         <h2 className="label" id="checkin-settings">
@@ -74,6 +92,39 @@ export default async function SettingsPage({
 
           <button className="button" type="submit">
             {COPY.settings.save}
+          </button>
+        </form>
+      </section>
+
+      <section className="panel ai-panel" aria-labelledby="ai-settings">
+        <h2 className="label" id="ai-settings">
+          {COPY.ai.heading}
+        </h2>
+        <p className="hint small">{COPY.ai.lead}</p>
+        <form className="settings-form" action={saveAiSettings} style={{ marginTop: 12 }}>
+          <label className="field">
+            <span>
+              <input type="checkbox" name="enabled" defaultChecked={settings.ai_enabled === 1} />{" "}
+              {COPY.ai.enabled}
+            </span>
+          </label>
+          <label className="field">
+            <span>{COPY.ai.model}</span>
+            <input
+              type="text"
+              name="model"
+              defaultValue={settings.ai_model}
+              maxLength={80}
+            />
+          </label>
+          <p className="hint small">{COPY.ai.modelHint}</p>
+          <button className="button" type="submit">
+            {COPY.settings.save}
+          </button>
+        </form>
+        <form action={checkLocalModel} style={{ marginTop: 12 }}>
+          <button className="button button-quiet" type="submit">
+            {COPY.ai.check}
           </button>
         </form>
       </section>

@@ -241,6 +241,7 @@ body {
   .task-input,
   .field input,
   .field select,
+  .field textarea,
   .button,
   .icon-button,
   .task-toggle,
@@ -516,7 +517,8 @@ body {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   padding: var(--space-2) var(--space-3);
   border: 2px solid var(--wood-300);
   border-radius: var(--radius-sm);
@@ -524,6 +526,100 @@ body {
   box-shadow: inset 0 2px 3px rgba(93, 62, 31, 0.12);
   color: var(--fg);
   font: inherit;
+}
+
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  line-height: var(--leading);
+}
+
+/* Phase 3: AI review card, reframe reading and the two masthead links. */
+.header-links {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.proposal-review {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px dashed var(--wood-300);
+  border-radius: var(--radius-md);
+  background: var(--parchment-100);
+}
+
+.proposal-list {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.proposal-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 5.5rem 7rem;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.proposal-item:last-child {
+  border-bottom: 0;
+}
+
+.proposal-item .task-input {
+  padding: var(--space-1) var(--space-2);
+}
+
+.preset-steps {
+  margin-top: var(--space-3);
+}
+
+.preset-steps > summary {
+  cursor: pointer;
+}
+
+.reading {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.reframe-text {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border-left: 3px solid var(--wood-300);
+  background: var(--parchment-100);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.reframe-edit {
+  margin-top: var(--space-4);
+}
+
+.reframe-edit > summary {
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .proposal-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .proposal-item .proposal-minutes,
+  .proposal-item .proposal-load {
+    grid-column: 2;
+  }
+}
+
+/* The AI settings panel is the last one on /settings; give it the full width. */
+@media (min-width: 980px) {
+  .shell:has(.values):not(:has(.stats)) > .panel:has(.ai-panel) {
+    grid-column: 1 / -1;
+  }
 }
 
 .field-row {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { COPY, PRODUCT_NAME } from "@/copy";
+import { ReframeShortcut } from "./reframe-shortcut";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ReframeShortcut />
+        {children}
+      </body>
     </html>
   );
 }
