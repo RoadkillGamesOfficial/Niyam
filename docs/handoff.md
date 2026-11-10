@@ -371,6 +371,53 @@ render inside the viewport down to 320x480. Captures are in
 `docs/design-revamp-overlay.png`. One defect surfaced and was fixed: the plan
 form's Add button overflowed its card.
 
+## Phase 3 — local AI (2026-11-09)
+
+Implemented, not yet run: no model was started and no browser checks were made
+this session, by request. `npm test` (104 tests) and `npm run build` pass.
+
+What is in place: a loopback-only Ollama client (`src/ai/ollama.ts`, built-in
+fetch, 60s timeout, one JSON retry); validated planner output reviewed before it
+saves (`plan_proposal`); `/reframe` with stored, editable and deletable brain
+dumps, another-angle regeneration, an accepted micro-action task, and a fixed
+supportive safety response when distress phrases appear; AI shrinkage with the
+Phase 2 presets as fallback; prompt files in `prompts/`; an AI switch, model
+field and connection check in Settings; migration `003_phase3.sql` adds the
+brain dump, proposal, item tables and AI settings columns.
+
+Default model `qwen2.5:1.5b-instruct` (candidates in `src/config.ts`). The
+benchmark is `node scripts/benchmark-ai.mjs` over `docs/ai-test-set.json`; it has
+not been run, so the model choice is still unmeasured.
+
+To test on a running app: `ollama pull qwen2.5:1.5b-instruct`, `ollama serve`,
+`npm run dev`. Shape a draft list and accept the review, open `/reframe` (or
+press R), try another angle, accept the step, delete a dump, run Drifted → Ask
+for a smaller step, then stop Ollama and repeat: every screen must still work in
+fallback mode and say so.
+
+### Audit fixes (2026-11-09)
+
+A requirement-by-requirement audit against `docs/phase-3-local-ai.md`, PDD
+§8.1/8.3/11/12 and R7 found three gaps, now fixed:
+
+- **PLAN-4 had no AI re-plan.** "Re-plan the rest" now asks the model for a full
+  permutation of the open tasks (`src/ai/replan.ts`, `prompts/replan.md`),
+  applies it with `reorderOpenItems`, and keeps the current order on failure or
+  when AI is off. The model never renames, deletes or invents a task.
+- **Reframe had no optional shrunken task.** The dump form can be tied to an
+  open task; accepting the step then creates it as a child of that task
+  (`brain_dump.source_task_id`, migration `004_phase3_reframe_task.sql`).
+- **A reframe step paid no micro-action XP.** `toggleTask` now pays
+  `micro_action` when a task has a parent or a brain dump, guarded by
+  `hasMicroActionEvent` so reopen/re-complete cannot pay twice.
+
+Smaller changes: the Drifted panel now leads with the AI step and keeps the
+Phase 2 presets in a "Preset steps" fallback (open by default when AI is off);
+AI buttons show "Working..." via `useFormStatus`, so a slow local model does not
+look frozen. The reframe history now lists every dump instead of the newest ten,
+so REF-4's "viewable" holds for old entries too. The suite is 104 tests;
+`npm run build` passes. The requirement map is in `docs/phase-3-local-ai.md`.
+
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;
 tunables in config; all user-facing strings in `src/copy.ts`; update

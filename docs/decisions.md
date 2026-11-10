@@ -355,3 +355,81 @@ names a source file unless editing that file is the user's next action.
 Open for the owner: the product name and tagline ("One small day at a time.")
 are the one pair the voice pass cannot approve on its own; see the note at the
 end of `docs/voice-guide.md`.
+
+## 2026-11-09 — Phase 3: a local model proposes, the user decides
+
+### The client is plain fetch against loopback
+
+Decision: `src/ai/ollama.ts` calls `/api/chat` on `http://127.0.0.1:11434` with
+the built-in fetch, no SDK. `assertLoopback` throws for any other host before a
+request is made; the base URL lives in `src/config.ts`, not in the database.
+
+Why: ARCH-1 forbids outbound calls, and this makes "local only" a checked
+property rather than a promise. A fetch client is also the whole API: the app
+sends one system message, one user message, `format: json` and two options.
+
+### A proposal table, not a pending AI draft in memory
+
+Decision: planner output lands in `plan_proposal` + `plan_proposal_item`, and a
+separate action turns the reviewed items into `task` and `plan_item` rows. Only
+a `proposed` row can be accepted, so a double submit adds nothing.
+
+Why: PLAN-3 and ARCH-4 require explicit confirmation, and the review form must
+survive a reload. Keeping the proposal also records what the app offered even
+after it was accepted or discarded.
+
+### Safety is checked before the model
+
+Decision: `detectDistress` runs first and returns a fixed supportive reading
+(category `distress`); the reframe prompt repeats the same instruction for
+subtler cases, and a model-chosen `distress` category is replaced by the fixed
+reading.
+
+Why: R7 must hold when Ollama is down or the model ignores its prompt. The
+user's dump is still stored and deletable, but no micro-action is offered and
+the step cannot be added to the plan.
+
+### Dumps are deletable, tasks are kept
+
+Decision: REF-4's delete removes the `brain_dump` row and clears
+`task.brain_dump_id`; the task itself stays on the plan.
+
+Why: the dump is the user's private text, while the task is part of the day's
+record. Removing the link keeps micro-action XP payable once without breaking the
+foreign key.
+
+### Small default model, measured later
+
+Decision: the default is `qwen2.5:1.5b-instruct` with `llama3.2:1b` and
+`gemma2:2b` as candidates, and the model name is a settings value. The benchmark
+script and test set are committed but were not run this session.
+
+Why: the owner's laptop is modest (R9); 1–2B instruction models are the realistic
+range. Storing the name in settings makes swapping models a UI change, and the
+fallbacks keep the app usable if the chosen model is slow.
+
+### Re-planning re-orders; it never rewrites the plan
+
+Decision: PLAN-4 sends the open tasks, profile and current time to the model and
+accepts only a full permutation of the existing indexes (`parseReplanOutput`).
+The order is applied to `plan_item` positions; finished work stays below it, and
+the button click is the approval. A missing model, malformed reply or AI-off
+setting keeps the current order and says so.
+
+Why: PLAN-4 is about the remaining timeline, not about inventing work, and
+ARCH-4 says the model never changes the plan without the user acting. Restricting
+the reply to an order makes an unsafe answer impossible to apply. The trade-off
+is that the model cannot re-estimate minutes during a re-plan; estimates stay
+what the planner proposed and the user accepted.
+
+### Reframe can shrink a chosen task, and micro XP is guarded
+
+Decision: a dump may name one open task (`brain_dump.source_task_id`). Accepting
+its step creates the step as a child of that task, and `toggleTask` pays
+`micro_action` when a task has either a parent or a brain dump link.
+`hasMicroActionEvent` makes that payment once.
+
+Why: PDD §8.3 step 5 says a task involved in the dump is shrunk into a tiny
+version, and honesty XP for completing a micro-action is part of the game loop.
+The guard closes a pre-existing hole where reopening and re-completing a
+shrunken task paid the bonus again.
