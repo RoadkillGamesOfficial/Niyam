@@ -18,6 +18,7 @@ export type Task = {
   parent_task_id: number | null;
   habit_id: number | null;
   carried_from_day_id: number | null;
+  brain_dump_id: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -29,10 +30,12 @@ export type NewTask = {
   estimatedMinutes?: number | null;
   cognitiveLoad?: CognitiveLoad;
   habitId?: number | null;
+  // Set for a shrunken task, so micro-action XP can be paid on completion.
+  parentTaskId?: number | null;
 };
 
 const COLUMNS =
-  "id, day_id, title, notes, estimated_minutes, cognitive_load, status, parent_task_id, habit_id, carried_from_day_id, created_at, updated_at";
+  "id, day_id, title, notes, estimated_minutes, cognitive_load, status, parent_task_id, habit_id, carried_from_day_id, brain_dump_id, created_at, updated_at";
 
 export function getTask(db: DatabaseSync, id: number): Task | undefined {
   const row = db
@@ -54,8 +57,8 @@ export function createTask(db: DatabaseSync, input: NewTask): Task {
 
   const result = db
     .prepare(
-      `INSERT INTO task (day_id, title, notes, estimated_minutes, cognitive_load, habit_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO task (day_id, title, notes, estimated_minutes, cognitive_load, habit_id, parent_task_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.dayId,
@@ -64,6 +67,7 @@ export function createTask(db: DatabaseSync, input: NewTask): Task {
       input.estimatedMinutes ?? null,
       input.cognitiveLoad ?? "medium",
       input.habitId ?? null,
+      input.parentTaskId ?? null,
     );
 
   // lastInsertRowid is a number or a bigint depending on the driver's mood.

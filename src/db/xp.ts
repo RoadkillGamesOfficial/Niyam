@@ -71,6 +71,14 @@ export function hasEventForPulse(db: DatabaseSync, pulseId: number): boolean {
   return row !== undefined;
 }
 
+/** True when this task already earned micro-action XP, so retries cannot pay twice. */
+export function hasMicroActionEvent(db: DatabaseSync, taskId: number): boolean {
+  const row = db
+    .prepare("SELECT 1 AS present FROM xp_event WHERE task_id = ? AND reason = 'micro_action' LIMIT 1")
+    .get(taskId);
+  return row !== undefined;
+}
+
 /** True when this task already earned completion XP. */
 export function hasTaskCompletionEvent(db: DatabaseSync, taskId: number): boolean {
   const row = db

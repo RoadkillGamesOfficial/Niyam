@@ -109,6 +109,39 @@ export function planProgress(
   return { done: row.done ?? 0, total: row.total };
 }
 
+/**
+ * Applies an order chosen for the open work (PLAN-4). Finished work stays below
+ * it in its existing order; anything the order left out keeps its relative place
+ * at the end of the open block, so a short reply can never lose a task.
+ */
+export function reorderOpenItems(
+  db: DatabaseSync,
+  dayId: number,
+  taskIdsInOrder: number[],
+): void {
+  const items = listPlan(db, dayId);
+  const open = items.filter((item) => item.status === "open");
+  const remaining = new Map(open.map((item) => [item.task_id, item]));
+  const ordered: PlanItem[] = [];
+
+  for (const taskId of taskIdsInOrder) {
+    const item = remaining.get(taskId);
+    if (item) {
+      ordered.push(item);
+      remaining.delete(taskId);
+    }
+  }
+  for (const item of open) {
+    if (remaining.has(item.task_id)) {
+      ordered.push(item);
+    }
+  }
+
+  const done = items.filter((item) => item.status === "done");
+  const update = db.prepare("UPDATE plan_item SET position = ? WHERE id = ?");
+  [...ordered, ...done].forEach((item, index) => update.run(index + 1, item.id));
+}
+
 /** A confirmed plan starts the check-in clock; the day row records when. */
 export function confirmPlan(db: DatabaseSync, dayId: number, at: string): void {
   db.prepare(

@@ -11,9 +11,12 @@ export type Settings = {
   interruption_level: InterruptionLevel;
   quiet_start: string | null;
   quiet_end: string | null;
+  ai_enabled: number;
+  ai_model: string;
 };
 
-const COLUMNS = "checkin_interval_minutes, interruption_level, quiet_start, quiet_end";
+const COLUMNS =
+  "checkin_interval_minutes, interruption_level, quiet_start, quiet_end, ai_enabled, ai_model";
 const TIME_SHAPE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export function getSettings(db: DatabaseSync): Settings {
@@ -28,6 +31,8 @@ export function getSettings(db: DatabaseSync): Settings {
     interruption_level: "standard",
     quiet_start: null,
     quiet_end: null,
+    ai_enabled: 1,
+    ai_model: CONFIG.ai.defaultModel,
   };
   return fallback;
 }
@@ -58,5 +63,24 @@ export function updateSettings(db: DatabaseSync, input: SettingsInput): Settings
     `UPDATE settings SET checkin_interval_minutes = ?, interruption_level = ?,
        quiet_start = ?, quiet_end = ? WHERE id = 1`,
   ).run(interval, input.interruptionLevel, input.quietStart, input.quietEnd);
+  return getSettings(db);
+}
+
+/**
+ * The AI switch and model name (PDD §8.6). The address stays in src/config.ts,
+ * so this can never point the app at another machine.
+ */
+export function updateAiSettings(
+  db: DatabaseSync,
+  input: { enabled: boolean; model: string },
+): Settings {
+  const model = input.model.trim();
+  if (!model || model.length > 80 || !/^[A-Za-z0-9._:\/-]+$/.test(model)) {
+    throw new Error("A model name looks like qwen2.5:1.5b-instruct.");
+  }
+  db.prepare("UPDATE settings SET ai_enabled = ?, ai_model = ? WHERE id = 1").run(
+    input.enabled ? 1 : 0,
+    model,
+  );
   return getSettings(db);
 }

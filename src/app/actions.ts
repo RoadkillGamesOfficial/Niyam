@@ -27,7 +27,7 @@ import { answerPulse, listPulsesForDay, type PulseResponse } from "@/db/pulses";
 import { getPlayerState } from "@/db/player";
 import { getSettings, updateSettings, type InterruptionLevel } from "@/db/settings";
 import { createTask, getTask, setTaskStatus } from "@/db/tasks";
-import { addXpEvent, hasEventForPulse, hasTaskCompletionEvent } from "@/db/xp";
+import { addXpEvent, hasEventForPulse, hasMicroActionEvent, hasTaskCompletionEvent } from "@/db/xp";
 import { pulseXp, taskXp, type PulseResponse as RuleResponse } from "@/game/rules";
 import { slotKey } from "@/game/pulses";
 import { localDateString } from "@/time";
@@ -92,8 +92,9 @@ export async function toggleTask(formData: FormData): Promise<void> {
       reason: "task_done",
       taskId: task.id,
     });
-    // Shrunken tasks are micro-actions: finishing one pays honesty XP too.
-    if (task.parent_task_id) {
+    // A shrunken task or an accepted reframe step is a micro-action: finishing
+    // one pays honesty XP, once (a reopen/re-complete must not pay again).
+    if ((task.parent_task_id || task.brain_dump_id) && !hasMicroActionEvent(db, task.id)) {
       addXpEvent(db, {
         dayId: task.day_id,
         amount: CONFIG.game.xp.microAction,
@@ -144,19 +145,6 @@ export async function startDay(): Promise<void> {
   confirmPlan(db, day.id, stamp());
   const refreshed = getOrCreateDayForDate(db, date);
   reconcileCheckins(db, refreshed, settings);
-  redirect("/");
-}
-
-/** "Re-plan the rest of my day": open work first, finished work parked below. */
-export async function replanRest(): Promise<void> {
-  const { db, day } = today();
-  const items = listPlan(db, day.id);
-  const ordered = [...items].sort((a, b) => {
-    if (a.status === b.status) return a.position - b.position;
-    return a.status === "open" ? -1 : 1;
-  });
-  const update = db.prepare("UPDATE plan_item SET position = ? WHERE id = ?");
-  ordered.forEach((item, index) => update.run(index + 1, item.id));
   redirect("/");
 }
 
