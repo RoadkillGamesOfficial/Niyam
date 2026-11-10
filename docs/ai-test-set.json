@@ -1,0 +1,34 @@
+{
+  "plan": [
+    {
+      "profile": "maintenance",
+      "text": "email Sam about the invoice, fix the leak under the sink, maybe start the quarterly report? also call the dentist at some point"
+    },
+    {
+      "profile": "low_energy",
+      "text": "- reply to the landlord\n- book the train ticket\n- read two pages of the manual\ntidy one corner of the desk"
+    },
+    {
+      "profile": "sprinting",
+      "text": "Finish the draft of section 3, which is about 800 words, then review the numbers with Priya, then send the deck. Also water the plants."
+    },
+    {
+      "profile": "maintenance",
+      "text": "I need to prepare for tomorrow's interview and also do laundry and the tax form is due and I should probably email my sister back"
+    }
+  ],
+  "reframe": [
+    {
+      "text": "I have been staring at the report for forty minutes and I keep opening other tabs. I do not even know which sentence comes first."
+    },
+    {
+      "text": "Everything is urgent and I cannot pick one thing. The kitchen is a mess, the inbox is worse, and I have three deadlines this week."
+    },
+    {
+      "text": "I am exhausted. I slept badly and the idea of opening the laptop makes me want to lie down."
+    },
+    {
+      "text": "I keep putting off the call because I am sure I will say the wrong thing and make it worse."
+    }
+  ]
+}

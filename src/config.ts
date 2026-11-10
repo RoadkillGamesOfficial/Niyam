@@ -61,6 +61,23 @@ export const CONFIG = {
     // One missed day per week does not break a streak (PDD §8.7 assumption).
     gracePerWeek: 1,
   },
+  ai: {
+    // Phase 3. Ollama is reached on loopback only: the URL is checked before any
+    // request, and a non-local host throws (ARCH-1). The default model is small
+    // enough for a modest laptop; the benchmark script compares the candidates.
+    baseUrl: "http://127.0.0.1:11434",
+    defaultModel: "qwen2.5:1.5b-instruct",
+    candidates: ["qwen2.5:1.5b-instruct", "llama3.2:1b", "gemma2:2b"],
+    // A slow laptop is allowed to think; the UI waits rather than losing the
+    // answer. Anything longer is treated as unavailable and falls back.
+    timeoutMs: 60_000,
+    healthTimeoutMs: 2_500,
+    maxPlanItems: 12,
+    maxInputChars: 4_000,
+    maxDumpChars: 4_000,
+    temperature: 0.2,
+    maxTokens: 600,
+  },
 } as const;
 
 export type GameConfig = typeof CONFIG.game;
