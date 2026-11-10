@@ -272,6 +272,8 @@ export const COPY = {
     weekConsistency: (rate: string) => `${rate} of check-ins answered this week.`,
     lastWeekConsistency: (rate: string) =>
       `${rate} of check-ins answered last week.`,
+    lastWeekEmpty:
+      "No check-ins or finished tasks last week. This card starts with the first one.",
     bestDay: (day: string, tasks: number) =>
       `${day} was the steadiest day, with ${tasks} tasks finished.`,
     heatHeading: "When drift shows up",

@@ -152,16 +152,16 @@ export default async function InsightsPage() {
               <li key={line}>{line}</li>
             ))}
           </ul>
+          <p className="label">{COPY.insights.lastWeekHeading}</p>
           {lastWeekLines.length > 0 ? (
-            <>
-              <p className="label">{COPY.insights.lastWeekHeading}</p>
-              <ul className="observation-list">
-                {lastWeekLines.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-            </>
-          ) : null}
+            <ul className="observation-list">
+              {lastWeekLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty">{COPY.insights.lastWeekEmpty}</p>
+          )}
         </div>
       </section>
 
