@@ -1,11 +1,10 @@
 # local-discipline-companion
 
 A local-first discipline companion. One page, one SQLite file, no accounts, no
-network calls while it runs. Phase 1 (local foundation) and Phase 2 (game loop)
-are complete: a manual plan with a Daily Profile, check-ins with XP and combo,
-habits, settings and a day close. Phase 3 (local AI) is implemented and awaiting
-a live run: an Ollama planner with review, Reframe brain dumps, AI task
-shrinkage, validation, fallbacks and an AI on/off switch.
+network calls while it runs. Phases 1–4 are implemented, with live testing still
+pending for the local-AI and insight layers: a manual plan with a Daily Profile,
+check-ins with XP and combo, habits, settings, a day close, an Ollama planner and
+Reframe flow with fallbacks, and a local insights view with peak-window planning.
 
 ## Requirements
 
@@ -28,8 +27,8 @@ Open the URL the dev server prints. Next picks a free port, so it is not always
 ignored by git. Everything you type lives only in that file, so back it up by
 copying it.
 
-Deleting `data/` is the only way the app removes anything. It never deletes or
-rewrites rows on its own.
+Apart from an explicit brain-dump delete, the app never removes history on its
+own; deleting `data/` removes the whole local record.
 
 ## Local AI (Phase 3, optional)
 
@@ -66,6 +65,31 @@ To compare models on this laptop, with Ollama running:
 node scripts/benchmark-ai.mjs
 node scripts/benchmark-ai.mjs --out docs/ai-benchmark.md
 ```
+
+## Insights (Phase 4)
+
+`/insights` reads the local history and shows a drift heat map by hour and
+weekday, completion under each Daily Profile, eight weeks of consistency / combo /
+integrity, per-habit completion with gentle next steps, and detected peak
+windows. Today, this week, and last week each get a short observation in plain
+language.
+
+Peak-window planning defaults on and can be switched off at /settings. When it
+is on, starting or editing the plan adds suggested start times and moves heavy
+tasks to the next detected peak without changing the plan order. With it off, no
+suggested times are written and planning keeps its usual order. A local model is
+not required for any of this.
+
+To review the views with months of history without touching real data:
+
+```sh
+npm run seed -- --db data/seed.db --fresh
+NIYAM_DB=data/seed.db npm run dev
+```
+
+The seed generator writes closed days, tasks, check-ins, XP and habits into a
+separate file; it refuses a window that already has days. `NIYAM_DB` is the only
+way the app points at another database.
 
 ## Checks
 

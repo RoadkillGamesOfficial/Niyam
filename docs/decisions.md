@@ -433,3 +433,52 @@ Why: PDD §8.3 step 5 says a task involved in the dump is shrunk into a tiny
 version, and honesty XP for completing a micro-action is part of the game loop.
 The guard closes a pre-existing hole where reopening and re-completing a
 shrunken task paid the bonus again.
+
+## 2026-11-10 — Phase 4: insight is derived from the history already kept
+
+### No insight tables
+
+Decision: every Phase 4 view is computed from `day`, `task`, `pulse`,
+`habit_occurrence` and `xp_event` at request time. There is no summary table and
+no second event store.
+
+Why: INS-1 says reports come from locally logged data only, and the PDD already
+treats raw history as the source of truth. A derived table could drift from the
+rows the rest of the app is writing. The queries are small for one person and
+all use the existing indexes.
+
+### Drift and peak definitions
+
+Decision: a drift moment is a `drifted` answer or a missed pulse. Pivot is a
+correction and is not drift. Peak windows look at answered and missed pulses
+over 56 days: on-track counts 1, pivot 0.5, drifted/missed 0; an hour needs at
+least 3 samples and a 60% score, and adjacent qualifying hours merge into one
+window. Weekly integrity is derived with the same `integrityFromDays` rule as
+the dashboard; a silent week shows no value rather than a made-up 50%.
+
+Why: these are the only readings the logged data can support without inventing
+scores. The thresholds live in `CONFIG.insights` so they can be retuned.
+
+### Peak placement preserves the user's order
+
+Decision: `schedulePlanForPeaks` walks the plan in its existing order and only
+moves a heavy task's suggested start to the next peak window; it never reorders,
+renames or removes work. `planned_start` is written on the active day, and is
+cleared when the user turns peak planning off or no peak has enough history.
+
+Why: INS-3 asks the planner to use peak windows, while PLAN-4/ARCH-4 keep the
+user's plan in charge. Times are suggestions and the order remains theirs. The
+AI prompt gets the same windows so a model can order heavy work sensibly, but
+the deterministic scheduler is what makes the placement true even without a
+model.
+
+### Demo history lives in its own database
+
+Decision: `seedHistory` refuses a window that already has days, and the CLI
+defaults to `data/seed.db`. The app can point at it with `NIYAM_DB`, so seeding
+never touches `data/discipline.db`.
+
+Why: the phase doc explicitly wants seed data for charts, but the owner's real
+history is not test data. A separate file makes that boundary structural rather
+than a warning. The trade-off is one extra environment variable for manual
+review.

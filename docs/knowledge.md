@@ -11,10 +11,11 @@ A personal productivity companion for ONE user, running entirely on one laptop. 
 **Phase 1: Local Foundation.** Complete and reviewed.
 **Phase 2: Game Loop.** Complete (2026-11-08): manual plan with profiles, check-ins, XP/combo/levels/integrity, habits, settings and day close, run end to end, reviewed and voice-passed.
 **Phase 3: Local AI.** Implemented 2026-11-09, pending live testing: Ollama planner with review, Reframe brain dumps with history and safety path, AI task shrinkage, validation and fallbacks, and an AI on/off switch. The model has not been run yet. The UI uses the warm Stardew-inspired look specified in `docs/design.md` (implemented 2026-11-08).
+**Phase 4: Telemetry and Calibration.** Implemented 2026-11-10, pending live testing: `/insights` with a drift heat map, completion by profile, weekly trends, habit insights, peak-window planning with a settings switch, daily/weekly observations, and a separate seed database for review.
 (Decisions settled 2026-11-05: `node:sqlite`, `node:test`, plain CSS. See `docs/decisions.md`.)
 Exit criteria: a task entered in the UI appears in the local database file and displays back correctly.
 
-Do NOT build features from later phases (check-in timer, XP and combos, AI, insights, habits, screen time import) unless explicitly asked. Later phases:
+Phases 1–4 are built. Do NOT build post-v1 features (screen time import, desktop wrapper, cloud sync or sharing) unless explicitly asked. The completed phases were:
 2. Game Loop (30-minute check-ins, XP ledger, combo, levels, integrity meter, basic habits)
 3. Local AI (Ollama: task parsing, brain dump reframing, task shrinkage)
 4. Telemetry (insights, drift patterns, planner calibration)

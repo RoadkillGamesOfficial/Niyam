@@ -63,11 +63,21 @@ generic self-help lines, and exclamation marks in ordinary confirmations.
 - "Today, wrapped" — the heading; the numbers do the bragging.
 - "That is today. Tomorrow starts from here."
 
+**Insights** (counts and observations, never verdicts)
+- "3 of 5 tasks finished today."
+- "Two moments drifted today. That is information, not a verdict."
+- "This week is still open. A single check-in starts the pattern."
+- "Try a five-minute version." / "Give it a time that fits your better hours."
+- Not: "Your worst hours are the afternoon." / "You should plan better."
+
 **Errors** (say what happened, then the next step)
 - "That habit could not be saved. Check the details and try again."
 - "That did not save. Check the values and try again."
 
 ## Mechanics of the copy file
+
+Phase 4 voice pass (2026-11-10): insight copy was written as observations with a
+next step where a habit is slipping; no percentage is framed as a grade.
 
 - All strings in `src/copy.ts`, none in components.
 - Sentence case. No uppercase tracking-wide labels in prose (the Phase 1

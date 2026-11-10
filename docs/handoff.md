@@ -1,7 +1,9 @@
 # Handoff — current state
 
 ## Status
-**Phase 1 complete. Phase 2 complete, reviewed and voice-passed (2026-11-08).** The app now runs a full
+**Phase 1 complete. Phase 2 complete, reviewed and voice-passed (2026-11-08).**
+**Phase 3 and Phase 4 are implemented, pending live testing (2026-11-10).**
+The app now runs a full
 day: plan with a profile, start the day, check-ins with XP and combo, habits,
 settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
 Verified end to end on 2026-11-08 with the dev server on port 3000:
@@ -415,8 +417,37 @@ Smaller changes: the Drifted panel now leads with the AI step and keeps the
 Phase 2 presets in a "Preset steps" fallback (open by default when AI is off);
 AI buttons show "Working..." via `useFormStatus`, so a slow local model does not
 look frozen. The reframe history now lists every dump instead of the newest ten,
-so REF-4's "viewable" holds for old entries too. The suite is 104 tests;
-`npm run build` passes. The requirement map is in `docs/phase-3-local-ai.md`.
+so REF-4's "viewable" holds for old entries too. At that point the suite was 104
+tests; `npm run build` passed. The requirement map is in
+`docs/phase-3-local-ai.md`.
+
+## Phase 4 — telemetry and calibration (2026-11-10)
+
+Implemented, not yet run in a browser or against a live model: `npm test` (114
+tests) and `npm run build` pass on the working tree. The seed CLI was exercised
+against a throwaway database and then removed.
+
+What exists: `/insights` with a 7 × 24 drift heat map, completion by Daily
+Profile, eight weekly trend rows (consistency, longest on-track run, integrity),
+per-habit completion and streaks with shrink/reschedule next steps, peak-window
+detection, and Today / This week / Last week observations. Settings has an
+Insights panel with the INS-3 switch. When peak planning is on, starting the day
+or editing the plan writes suggested `plan_item.planned_start` times, moving a
+heavy task to the next detected peak without changing the order; turning the
+switch off clears those times. The AI planner prompt also receives the peak
+windows.
+
+Data stays local: new queries in `src/db/insights.ts` read the existing day,
+task, pulse, habit and XP rows; no new event tables and no network calls. The
+demo generator is `src/db/seed.ts` with `scripts/seed-insights.mjs`: run
+`npm run seed -- --db data/seed.db --fresh`, then
+`NIYAM_DB=data/seed.db npm run dev`. The separate file and the `NIYAM_DB`
+override keep real data out of seeding. Migration `005_phase4_insights.sql` adds
+the switch.
+
+The phase's requirement map is in `docs/phase-4-telemetry.md`. Still open: live
+acceptance and visual review, an independent reviewer pass, and the unrun model
+benchmark from Phase 3.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;
