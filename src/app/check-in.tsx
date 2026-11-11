@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COPY } from "@/copy";
 import { isQuiet } from "@/game/pulses";
-import { checkinShortcut, type ShortcutTarget } from "@/game/shortcuts";
+import { checkinShortcutFromEvent, type ShortcutTarget } from "@/game/shortcuts";
 import { answerCheckin } from "./actions";
 
 // Browser side of the check-in. The server owns the schedule; this makes a due
@@ -166,25 +166,21 @@ export function CheckInWatcher({
   // submits through the same server action as the visible buttons.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (
-        event.defaultPrevented ||
-        event.repeat ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey ||
-        !pending ||
-        pendingId === null ||
-        overlay
-      ) {
+      if (!pending || pendingId === null || overlay) {
         return;
       }
       const modalOpen =
         overlay || document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
-      const response = checkinShortcut(
-        event.key,
-        event.target as ShortcutTarget,
+      const response = checkinShortcutFromEvent({
+        key: event.key,
+        target: event.target as ShortcutTarget,
         modalOpen,
-      );
+        defaultPrevented: event.defaultPrevented,
+        repeat: event.repeat,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+      });
       if (!response) {
         return;
       }

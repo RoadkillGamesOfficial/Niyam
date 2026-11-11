@@ -1,41 +1,86 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { CHECKIN_SHORTCUTS, checkinShortcut } from "./shortcuts.ts";
+import { checkinShortcutFromEvent } from "./shortcuts.ts";
+
+const plain = { target: null, modalOpen: false } as const;
 
 describe("check-in quick keys", () => {
-  it("routes O, P and D to the three response paths", () => {
-    assert.equal(checkinShortcut("o", null, false), "on_track");
-    assert.equal(checkinShortcut("p", null, false), "pivot");
-    assert.equal(checkinShortcut("d", null, false), "drifted");
-    assert.deepEqual(CHECKIN_SHORTCUTS, {
-      o: "on_track",
-      p: "pivot",
-      d: "drifted",
-    });
+  it("routes O to on_track", () => {
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "o" }),
+      "on_track",
+    );
+  });
+
+  it("routes P to pivot", () => {
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "p" }),
+      "pivot",
+    );
+  });
+
+  it("routes D to drifted", () => {
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "d" }),
+      "drifted",
+    );
   });
 
   it("accepts uppercase keys", () => {
-    assert.equal(checkinShortcut("O", null, false), "on_track");
-    assert.equal(checkinShortcut("P", null, false), "pivot");
-    assert.equal(checkinShortcut("D", null, false), "drifted");
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "O" }), "on_track");
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "P" }), "pivot");
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "D" }), "drifted");
   });
 
   it("does not fire while typing in a text field", () => {
     for (const tagName of ["INPUT", "TEXTAREA", "SELECT"]) {
-      assert.equal(checkinShortcut("o", { tagName }, false), null);
+      assert.equal(
+        checkinShortcutFromEvent({ ...plain, key: "o", target: { tagName } }),
+        null,
+      );
     }
-    assert.equal(checkinShortcut("p", { tagName: "DIV", isContentEditable: true }, false), null);
+  });
+
+  it("does not fire in a content-editable area", () => {
+    assert.equal(
+      checkinShortcutFromEvent({
+        ...plain,
+        key: "p",
+        target: { tagName: "DIV", isContentEditable: true },
+      }),
+      null,
+    );
   });
 
   it("does not fire when a modal owns focus", () => {
-    assert.equal(checkinShortcut("o", null, true), null);
-    assert.equal(checkinShortcut("p", null, true), null);
-    assert.equal(checkinShortcut("d", null, true), null);
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "o", modalOpen: true }),
+      null,
+    );
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "p", modalOpen: true }),
+      null,
+    );
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "d", modalOpen: true }),
+      null,
+    );
+  });
+
+  it("ignores modifier chords, repeats and already-handled keys", () => {
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "o", altKey: true }), null);
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "o", ctrlKey: true }), null);
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "o", metaKey: true }), null);
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "o", repeat: true }), null);
+    assert.equal(
+      checkinShortcutFromEvent({ ...plain, key: "o", defaultPrevented: true }),
+      null,
+    );
   });
 
   it("ignores unrelated keys", () => {
-    assert.equal(checkinShortcut("r", null, false), null);
-    assert.equal(checkinShortcut("Enter", null, false), null);
-    assert.equal(checkinShortcut("1", null, false), null);
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "r" }), null);
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "Enter" }), null);
+    assert.equal(checkinShortcutFromEvent({ ...plain, key: "1" }), null);
   });
 });

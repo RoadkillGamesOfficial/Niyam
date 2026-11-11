@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { checkinShortcut } from "../game/shortcuts.ts";
+import { checkinShortcutFromEvent } from "../game/shortcuts.ts";
 import { getOrCreateDayForDate } from "./days.ts";
 import { answerPulse, createPulse, pendingPulse } from "./pulses.ts";
 import { withTempDatabase } from "./test-helpers.ts";
@@ -21,7 +21,11 @@ describe("check-in shortcut response paths", () => {
         const pending = pendingPulse(db, day.id);
         assert.ok(pending);
 
-        const response = checkinShortcut(key, null, false);
+        const response = checkinShortcutFromEvent({
+          key,
+          target: null,
+          modalOpen: false,
+        });
         assert.equal(response, expected);
         const answered = answerPulse(db, pending.id, response, null, due);
         assert.equal(answered?.status, "answered");

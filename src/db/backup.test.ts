@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, utimesSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  utimesSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { describe, it } from "node:test";
 import { dirname, join } from "node:path";
 import {
@@ -18,33 +26,51 @@ import { createTask, getTask } from "./tasks.ts";
 import { withTempDatabase } from "./test-helpers.ts";
 
 describe("database export", () => {
-  it("writes a standalone snapshot that restores the pre-mutation state", () => {
-    withTempDatabase((db, path) => {
-      const day = getOrCreateDayForDate(db, "2026-01-02");
-      const task = createTask(db, {
+  it("restores a snapshot over mutated live data and brings the original state back", () => {
+    const directory = mkdtempSync(join(tmpdir(), "niyam-restore-"));
+    const sourcePath = join(directory, "source.db");
+    const snapshotPath = join(directory, "manual-export.db");
+    const source = openDatabase(sourcePath);
+    let sourceClosed = false;
+    try {
+      const day = getOrCreateDayForDate(source, "2026-01-02");
+      const task = createTask(source, {
         dayId: day.id,
         title: "Before the change",
         estimatedMinutes: 15,
         cognitiveLoad: "light",
       });
-      const snapshotPath = join(dirname(path), "manual-export.db");
 
-      const result = exportDatabase(db, snapshotPath);
+      const result = exportDatabase(source, snapshotPath);
       assert.equal(result.path, snapshotPath);
       assert.ok(result.bytes > 0);
       assert.equal(existsSync(`${snapshotPath}-wal`), false);
 
-      db.prepare("UPDATE task SET title = 'After the change' WHERE id = ?").run(task.id);
-      assert.equal(getTask(db, task.id)?.title, "After the change");
+      source.prepare("UPDATE task SET title = 'After the change' WHERE id = ?").run(task.id);
+      assert.equal(getTask(source, task.id)?.title, "After the change");
 
-      const restored = openDatabase(snapshotPath);
+      // Close the live database before replacing its file, then install the
+      // snapshot exactly as the documented restore path does.
+      source.close();
+      sourceClosed = true;
+      rmSync(`${sourcePath}-wal`, { force: true });
+      rmSync(`${sourcePath}-shm`, { force: true });
+      copyFileSync(snapshotPath, sourcePath);
+
+      const restored = openDatabase(sourcePath);
       try {
         assert.equal(getTask(restored, task.id)?.title, "Before the change");
+        assert.notEqual(getTask(restored, task.id)?.title, "After the change");
         assert.equal(getOrCreateDayForDate(restored, "2026-01-02").id, day.id);
       } finally {
         restored.close();
       }
-    });
+    } finally {
+      if (!sourceClosed) {
+        source.close();
+      }
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it("refuses to overwrite an existing snapshot", () => {

@@ -15,8 +15,8 @@ killed and restarted the dev server → the task and its done state were still
 there. `npm test` (70 tests) and `npm run build` both pass.
 
 Commits on this branch, oldest first. `origin` is configured at
-`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 13 commits ahead
-of `origin/main` after this docs commit. Nothing has been pushed.
+`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 14 commits ahead
+of `origin/main` after the test-hardening commit. Nothing has been pushed.
 
 | Commit | What |
 |--------|------|
@@ -47,7 +47,7 @@ of `origin/main` after this docs commit. Nothing has been pushed.
 
 Every hash in this table resolves with `git cat-file -t`. The table now covers
 the Phase 3 and Phase 4 work and the 2026-11-11 v1 hardening commits. The docs
-commit that adds this text follows the table.
+commit and the test-hardening commit follow the table.
 
 ## How to run
 ```
@@ -508,11 +508,14 @@ suppression, modal suppression, unrelated keys, and storage of each response.
 
 ### Verification and open items
 
-`npm test` is 126/126 green and `npm run build` passes after the hardening. The
-export CLI was exercised against a throwaway database, and the restored file
-contained the expected task. Still open: a browser check of the download, the
-Settings backup button and the shortcut suppression, plus the deferred Phase 3
-and Phase 4 live acceptance and model benchmark.
+`npm test` is 130/130 green and `npm run build` passes after the hardening. The
+export CLI was exercised against a throwaway database, and the restore
+round-trip test installs the snapshot over a mutated live file and finds the
+original task and day again. The shortcut tests name O, P and D separately and
+cover typing, content-editable, modal, modifier, repeat and unrelated-key
+guards. Still open: a browser check of the download, the Settings backup button
+and the shortcut suppression, plus the deferred Phase 3 and Phase 4 live
+acceptance and model benchmark.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;

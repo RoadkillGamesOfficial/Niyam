@@ -15,6 +15,17 @@ export type ShortcutTarget = {
   isContentEditable?: boolean;
 } | null;
 
+export type ShortcutEvent = {
+  key: string;
+  target: ShortcutTarget;
+  modalOpen: boolean;
+  defaultPrevented?: boolean;
+  repeat?: boolean;
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+};
+
 export function isTypingTarget(target: ShortcutTarget): boolean {
   if (!target) {
     return false;
@@ -35,4 +46,18 @@ export function checkinShortcut(
   return lower in CHECKIN_SHORTCUTS
     ? CHECKIN_SHORTCUTS[lower as keyof typeof CHECKIN_SHORTCUTS]
     : null;
+}
+
+/** The event-level guard the client uses; kept pure so modifiers and repeats are tested. */
+export function checkinShortcutFromEvent(event: ShortcutEvent): CheckinResponse | null {
+  if (
+    event.defaultPrevented ||
+    event.repeat ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey
+  ) {
+    return null;
+  }
+  return checkinShortcut(event.key, event.target, event.modalOpen);
 }
