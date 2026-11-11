@@ -274,6 +274,7 @@ export default async function Home({
                     {COPY.checkin.drifted}
                   </button>
                 </div>
+                <p className="hint small">{COPY.checkin.quickHint}</p>
                 <p className="hint small">{COPY.checkin.missedHelper}</p>
               </form>
             ) : (

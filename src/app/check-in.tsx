@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COPY } from "@/copy";
 import { isQuiet } from "@/game/pulses";
+import { checkinShortcut, type ShortcutTarget } from "@/game/shortcuts";
 import { answerCheckin } from "./actions";
 
 // Browser side of the check-in. The server owns the schedule; this makes a due
@@ -45,6 +46,8 @@ export function CheckInWatcher({
   const notifiedPending = useRef<number | null>(null);
   const timerFired = useRef(false);
   const timerFiredAt = useRef(0);
+  const quickForm = useRef<HTMLFormElement>(null);
+  const quickResponse = useRef<HTMLInputElement>(null);
 
   // A soft two-note chime, generated locally: no audio files, no network.
   function chime(): void {
@@ -158,6 +161,46 @@ export function CheckInWatcher({
     return () => window.removeEventListener("pointerdown", ask);
   }, [level]);
 
+  // O / P / D answer the inline prompt. They deliberately stay quiet while a
+  // text field has focus or the firm overlay owns the page. The hidden form
+  // submits through the same server action as the visible buttons.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        !pending ||
+        pendingId === null ||
+        overlay
+      ) {
+        return;
+      }
+      const modalOpen =
+        overlay || document.querySelector('[role="dialog"][aria-modal="true"]') !== null;
+      const response = checkinShortcut(
+        event.key,
+        event.target as ShortcutTarget,
+        modalOpen,
+      );
+      if (!response) {
+        return;
+      }
+      const form = quickForm.current;
+      const input = quickResponse.current;
+      if (!form || !input) {
+        return;
+      }
+      event.preventDefault();
+      input.value = response;
+      form.requestSubmit();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [overlay, pending, pendingId]);
+
   if (overlay && level === "firm" && pending && pendingId !== null && !pendingQuiet) {
     return (
       <div
@@ -204,7 +247,20 @@ export function CheckInWatcher({
   }
 
   if (remaining === null || paused || pending) {
-    return null;
+    if (!pending || pendingId === null || overlay) {
+      return null;
+    }
+    return (
+      <form ref={quickForm} action={answerCheckin} hidden>
+        <input type="hidden" name="pulseId" value={pendingId} />
+        <input
+          ref={quickResponse}
+          type="hidden"
+          name="response"
+          defaultValue="on_track"
+        />
+      </form>
+    );
   }
 
   const minutes = Math.max(1, Math.ceil(remaining / 60_000));
