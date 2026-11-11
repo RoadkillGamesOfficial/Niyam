@@ -3,6 +3,8 @@
 ## Status
 **Phase 1 complete. Phase 2 complete, reviewed and voice-passed (2026-11-08).**
 **Phase 3 and Phase 4 are implemented, pending live testing (2026-11-10).**
+**v1 hardening is implemented 2026-11-11: snapshot export, bounded automatic
+backups, and check-in quick keys, pending browser verification.**
 The app now runs a full
 day: plan with a profile, start the day, check-ins with XP and combo, habits,
 settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
@@ -12,8 +14,9 @@ refresh → marked done → `status = 'done'` and `updated_at` changed on disk �
 killed and restarted the dev server → the task and its done state were still
 there. `npm test` (70 tests) and `npm run build` both pass.
 
-Commits on this branch, oldest first. All of them are local: the repository has
-no remote configured, so nothing has been pushed.
+Commits on this branch, oldest first. `origin` is configured at
+`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 13 commits ahead
+of `origin/main` after this docs commit. Nothing has been pushed.
 
 | Commit | What |
 |--------|------|
@@ -29,12 +32,22 @@ no remote configured, so nothing has been pushed.
 | `4f6ee35` | phase 2: check-in levels and quiet hours |
 | `a5b4265` | phase 2: acceptance, review and voice pass |
 | `a910002` | docs: level and copy checks on the committed build |
+| `24a923b` | phase 3: local model client, prompts and output validation |
+| `5bd0a98` | phase 3: AI proposals, brain dumps and micro-action data |
+| `f900046` | phase 3: plan, reframe and AI settings screens |
+| `3dbf819` | phase 3: requirement map, handoff and benchmark docs |
+| `dbfed79` | phase 4: seed history and local insight queries |
+| `1d01b73` | phase 4: insights page, peak scheduling and settings |
+| `c1c57ca` | phase 4: requirement map, handoff and voice pass |
+| `c397b88` | phase 4: label last week's summary as last week |
+| `a64c8c0` | phase 4: give a silent last week an empty state |
+| `70191e6` | data: snapshot export, automatic backups and retention |
+| `7086a6b` | habits: compare UTC creation times against local due dates |
+| `5b6d0b5` | checkin: add O/P/D quick keys for the three responses |
 
-The audit fix that corrected this table is the newest commit on the branch.
-`main` and the working branch `freebuff/c529a0c2dcc68f8c257e8625` point at the
-same commit. An earlier version of this table listed three hashes that are not
-in this repository's history at all; they came from a previous clone and were
-dropped, so every hash left here resolves with `git cat-file -t`.
+Every hash in this table resolves with `git cat-file -t`. The table now covers
+the Phase 3 and Phase 4 work and the 2026-11-11 v1 hardening commits. The docs
+commit that adds this text follows the table.
 
 ## How to run
 ```
@@ -448,6 +461,58 @@ the switch.
 The phase's requirement map is in `docs/phase-4-telemetry.md`. Still open: live
 acceptance and visual review, an independent reviewer pass, and the unrun model
 benchmark from Phase 3.
+
+## v1 hardening — export, backups and quick keys (2026-11-11)
+
+Implemented and covered by unit/integration tests. No browser and no live model
+was run, by request.
+
+### Export
+
+Settings → Your data → **Download a snapshot**, or run
+`npm run export -- --out data/exports/niyam-export.db`. The default output is a
+timestamped file in `data/exports`; `--db` selects another database. The
+`/export` route and the script both use `VACUUM INTO`, so the result is one
+standalone `.db` image, not a copy of a live file plus its WAL.
+
+To restore: stop the app, keep a copy of the current database, replace
+`data/discipline.db` with the snapshot, remove `data/discipline.db-wal` and
+`data/discipline.db-shm`, then start the app. The test in
+`src/db/backup.test.ts` exports, mutates the source, opens the snapshot, and
+asserts the original title and day are back.
+
+### Automatic backups
+
+`getDatabase()` calls `ensureAutomaticBackup` on database open. The newest backup
+must be at least 24 hours old before another is written, and only the newest 7
+are kept (both tunables in `CONFIG.backup`). The live database writes to
+`data/backups`; a seed or other `NIYAM_DB` database writes beside itself, such as
+`data/seed-backups`, so demo data cannot prune real backups. Pruning is by file
+modification time. The Settings **Back up now** button uses the same snapshot and
+retention path. A failed backup is logged and does not block the app. Tests cover
+creation, the interval skip, pruning, manual backups, and the separate-folder
+rule.
+
+Exports are deliberate user files in `data/exports` and are not pruned
+automatically.
+
+### Quick keys
+
+On the inline check-in card, **O** answers On track, **P** answers Pivot, and
+**D** answers Drifted. **R** remains the Reframe shortcut. The keys ignore
+modifier chords, key repeats, text fields, selects, content-editable areas, and
+any visible `aria-modal` dialog; the firm overlay therefore keeps focus. They
+submit through the same server action as the buttons. A quick key records no
+note; use the buttons when adding one. Tests cover all three mappings, typing
+suppression, modal suppression, unrelated keys, and storage of each response.
+
+### Verification and open items
+
+`npm test` is 126/126 green and `npm run build` passes after the hardening. The
+export CLI was exercised against a throwaway database, and the restored file
+contained the expected task. Still open: a browser check of the download, the
+Settings backup button and the shortcut suppression, plus the deferred Phase 3
+and Phase 4 live acceptance and model benchmark.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;

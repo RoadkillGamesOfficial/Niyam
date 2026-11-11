@@ -24,11 +24,42 @@ Open the URL the dev server prints. Next picks a free port, so it is not always
 ## Where the data lives
 
 `data/discipline.db` — a single SQLite file, created on the first page load and
-ignored by git. Everything you type lives only in that file, so back it up by
-copying it.
+ignored by git. Everything you type lives only in that file. Use the snapshot
+export below rather than copying a live database file.
 
 Apart from an explicit brain-dump delete, the app never removes history on its
 own; deleting `data/` removes the whole local record.
+
+## Export and backups
+
+Settings → Your data → **Download a snapshot** downloads one self-contained
+SQLite file with all your history. The same thing is available from a script:
+
+```sh
+npm run export -- --out data/exports/niyam-export.db
+```
+
+Both paths use SQLite's `VACUUM INTO`, so the export is a consistent snapshot,
+not a raw copy of the live file and its WAL. A throwaway database can be
+selected with `--db`.
+
+On database open, the app also writes automatic snapshots. The live database
+keeps them in `data/backups`; a seed or `NIYAM_DB` database keeps a sibling
+folder such as `data/seed-backups`. A new backup is written at most once every
+24 hours, and the newest 7 are kept; older ones are pruned. Settings shows the
+current backup count and newest file, and **Back up now** creates one manually.
+
+To restore, stop the app, replace `data/discipline.db` with the chosen snapshot,
+and remove the old `data/discipline.db-wal` and `data/discipline.db-shm` files
+before starting it again.
+
+## Check-in quick keys
+
+On the inline check-in card, press **O** for On track, **P** for Pivot, or **D**
+for Drifted. **R** still opens Reframe. The quick keys do nothing while you are
+typing, and they stay inactive while the firm check-in overlay (a modal) owns the
+page. Quick keys submit the response without a note; use the buttons when you
+want to add one.
 
 ## Local AI (Phase 3, optional)
 
@@ -89,7 +120,8 @@ NIYAM_DB=data/seed.db npm run dev
 
 The seed generator writes closed days, tasks, check-ins, XP and habits into a
 separate file; it refuses a window that already has days. `NIYAM_DB` is the only
-way the app points at another database.
+way the app points at another database. Demo backups go to a sibling
+`seed-backups` folder, not the real `data/backups`.
 
 ## Checks
 

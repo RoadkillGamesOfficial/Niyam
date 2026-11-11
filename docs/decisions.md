@@ -482,3 +482,66 @@ Why: the phase doc explicitly wants seed data for charts, but the owner's real
 history is not test data. A separate file makes that boundary structural rather
 than a warning. The trade-off is one extra environment variable for manual
 review.
+
+## 2026-11-11 — v1 hardening: snapshots, bounded backups and quick keys
+
+### Every export and backup is a SQLite snapshot
+
+Decision: `src/db/backup.ts` uses `VACUUM INTO` for the download route, the
+`npm run export` script, the Settings button, and automatic backups. No path
+copies the live `.db` file or its WAL directly.
+
+Why: a raw copy of a live WAL database can be torn or need the matching `-wal`
+and `-shm` files. `VACUUM INTO` asks SQLite for one consistent database image,
+which is openable by any SQLite tool and is what the restore test proves.
+
+What it rules out: treating a filesystem copy as a backup, and exporting a
+partially written database. Manual exports live in `data/exports`; deliberate
+user exports are not pruned automatically.
+
+### Automatic backups are time- and count-bounded
+
+Decision: `getDatabase()` calls `ensureAutomaticBackup` on database open. A new
+backup is written only when the newest one is at least 24 hours old, and
+`pruneBackups` keeps the newest 7 by modification time. The live database writes
+to `data/backups`; any other database (a seed or `NIYAM_DB` file) writes to a
+sibling `<name>-backups` folder. A backup failure is logged and never blocks the
+app.
+
+Why: the PDD requires periodic automatic backup and bounded growth, while demo
+data must not be able to prune the owner's real history. Modification time is
+simple, observable, and works even if a filename is hand-edited.
+
+What it rules out: an unbounded backup folder, automatic backups in the live
+folder for demo databases, and a backup failure taking the dashboard down.
+
+### Quick keys act only on the inline prompt
+
+Decision: O answers On track, P answers Pivot, and D answers Drifted on the
+inline check-in card. They submit the same server action as the buttons through
+a hidden form, and add no note. The mapper in `src/game/shortcuts.ts` rejects
+modifier chords, repeats, typing targets, and an open `aria-modal` dialog; the
+firm overlay therefore keeps focus. R remains the Reframe shortcut.
+
+Why: the PDD asks for quick keys for the three responses, but the firm overlay
+is deliberately a gate and must not lose keystrokes to a second shortcut layer.
+Keeping the decision in a pure function makes the suppression rules testable
+without a browser.
+
+What it rules out: quick keys firing from the note field, from other text
+entries, or while the overlay is open. A response keyed in a hurry does not
+silently attach an old note.
+
+### Habit creation timestamps are UTC in storage, local in comparisons
+
+Decision: `habit.created_at` remains SQLite's `datetime('now')` UTC default, but
+`dueHabits` converts it to the local calendar date before applying the habit's
+created-on rule.
+
+Why: due dates are local days everywhere else. Late in a negative-offset
+evening, a freshly created habit could look created "tomorrow" and be hidden
+until the next day. Converting at the data boundary fixes existing rows without
+rewriting history or changing the schema.
+
+What it rules out: rewriting historical timestamps or treating UTC dates as local
+calendar dates.

@@ -12,10 +12,11 @@ A personal productivity companion for ONE user, running entirely on one laptop. 
 **Phase 2: Game Loop.** Complete (2026-11-08): manual plan with profiles, check-ins, XP/combo/levels/integrity, habits, settings and day close, run end to end, reviewed and voice-passed.
 **Phase 3: Local AI.** Implemented 2026-11-09, pending live testing: Ollama planner with review, Reframe brain dumps with history and safety path, AI task shrinkage, validation and fallbacks, and an AI on/off switch. The model has not been run yet. The UI uses the warm Stardew-inspired look specified in `docs/design.md` (implemented 2026-11-08).
 **Phase 4: Telemetry and Calibration.** Implemented 2026-11-10, pending live testing: `/insights` with a drift heat map, completion by profile, weekly trends, habit insights, peak-window planning with a settings switch, daily/weekly observations, and a separate seed database for review.
+**v1 hardening.** Implemented 2026-11-11: snapshot export from Settings and `npm run export`, bounded automatic backups on database open, and O/P/D quick keys on the inline check-in. Tests are green; browser and live-model acceptance are still deferred.
 (Decisions settled 2026-11-05: `node:sqlite`, `node:test`, plain CSS. See `docs/decisions.md`.)
 Exit criteria: a task entered in the UI appears in the local database file and displays back correctly.
 
-Phases 1–4 are built. Do NOT build post-v1 features (screen time import, desktop wrapper, cloud sync or sharing) unless explicitly asked. The completed phases were:
+Phases 1–4 are built, plus the v1 hardening above. Do NOT build post-v1 features (screen time import, desktop wrapper, cloud sync or sharing) unless explicitly asked. The completed phases were:
 2. Game Loop (30-minute check-ins, XP ledger, combo, levels, integrity meter, basic habits)
 3. Local AI (Ollama: task parsing, brain dump reframing, task shrinkage)
 4. Telemetry (insights, drift patterns, planner calibration)
@@ -44,6 +45,7 @@ Phases 1–4 are built. Do NOT build post-v1 features (screen time import, deskt
 - **No outbound network calls at runtime. No cloud services. No accounts. No telemetry.**
 - XP is stored as a ledger of events. Player state (level, total XP, multiplier) is derived from it.
 - Raw history (tasks, pulses, brain dumps) is never overwritten or silently deleted. Later phases depend on it.
+- Data safety uses SQLite snapshots (`VACUUM INTO`), never a raw copy of a live database. Automatic backups are local, bounded by `CONFIG.backup`, and separate from user exports.
 - Game rules and tunable values live in configuration, not hard-coded in logic.
 - AI features (Phase 3) must degrade gracefully, and AI output must be validated before use. The AI proposes, the user approves.
 
