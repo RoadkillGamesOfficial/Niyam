@@ -9,6 +9,18 @@ export const CONFIG = {
     directory: "data",
     filename: "discipline.db", // never contains the product name; see docs/decisions.md
   },
+  backup: {
+    // A snapshot is written at most once per interval, and only the newest keep
+    // are retained. These are tunables, like the game numbers.
+    directory: "data/backups",
+    intervalHours: 24,
+    keep: 7,
+    filenamePrefix: "niyam-backup-",
+  },
+  export: {
+    directory: "data/exports",
+    filenamePrefix: "niyam-export-",
+  },
   tasks: {
     // Long titles are hard to scan, so the input and the data layer share a cap.
     maxTitleLength: 200,

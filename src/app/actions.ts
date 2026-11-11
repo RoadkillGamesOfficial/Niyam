@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { CONFIG } from "@/config";
 import { COPY } from "@/copy";
+import { createBackup } from "@/db/backup";
+import { databasePath } from "@/db/database";
 import { reconcileCheckins } from "@/db/checkins";
 import {
   getOrCreateDayForDate,
@@ -333,6 +335,16 @@ export async function saveSettings(formData: FormData): Promise<void> {
     redirect("/settings?error=1");
   }
   redirect("/settings?saved=1");
+}
+
+export async function backupNow(): Promise<void> {
+  let failed = false;
+  try {
+    createBackup(getDatabase(), databasePath());
+  } catch {
+    failed = true;
+  }
+  redirect(failed ? "/settings?backupError=1" : "/settings?backedUp=1");
 }
 
 export async function saveInsightSettings(formData: FormData): Promise<void> {

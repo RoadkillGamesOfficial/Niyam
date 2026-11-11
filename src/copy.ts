@@ -103,6 +103,7 @@ export const COPY = {
       "Say the first step out loud",
     ],
     shrink: "Make it this small",
+    quickHint: "Keys: O on track · P pivot · D drifted",
   },
   reframe: {
     nav: "Reframe",
@@ -229,6 +230,24 @@ export const COPY = {
     save: "Save",
     saved: "Saved.",
     error: "That did not save. Check the values and try again.",
+    dataHeading: "Your data",
+    dataLede:
+      "Everything lives in one local database file. Download a snapshot whenever you want; automatic backups keep a short recent history.",
+    exportButton: "Download a snapshot",
+    exportHint: "One .db file with all your history. Nothing leaves this laptop.",
+    exportError: "The export could not be prepared. Check the data folder and try again.",
+    backupHeading: "Automatic backups",
+    backupLede: (count: number, hours: number) =>
+      count === 0
+        ? `No automatic backup yet. One is written when the app opens, then at most every ${hours} hours.`
+        : `${count} automatic backup${count === 1 ? "" : "s"} kept. A new one is written at most every ${hours} hours.`,
+    backupLatest: (name: string) => `Newest: ${name}.`,
+    backupEmpty: "No automatic backup yet. Opening the app writes the first one.",
+    backupPolicy: (keep: number, hours: number) =>
+      `The newest ${keep} automatic backups are kept; older ones are pruned. They live in the database's backups folder, at most one every ${hours} hours.`,
+    backupNow: "Back up now",
+    backedUp: "A backup snapshot was written.",
+    backupError: "The backup could not be written. Check the data folder and try again.",
     gameHeading: "Game values",
     gameNote:
       "These numbers live in the code so every change is reviewed. Change them in src/config.ts and restart.",

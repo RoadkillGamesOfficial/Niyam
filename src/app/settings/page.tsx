@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { CONFIG } from "@/config";
 import { COPY } from "@/copy";
+import { getBackupStatus } from "@/db/backup";
+import { databasePath } from "@/db/database";
 import { getDatabase } from "@/db/index";
 import { getSettings } from "@/db/settings";
 import { checkLocalModel, saveAiSettings } from "../ai-actions";
-import { saveInsightSettings, saveSettings } from "../actions";
+import { backupNow, saveInsightSettings, saveSettings } from "../actions";
 
 // Settings are read and written through the same data-access functions the tests
 // use. Gamification numbers are shown, not edited: they live in src/config.ts.
@@ -19,11 +21,14 @@ export default async function SettingsPage({
     error?: string;
     ai?: string;
     aiError?: string;
+    backedUp?: string;
+    backupError?: string;
   }>;
 }) {
   const params = await searchParams;
   const db = getDatabase();
   const settings = getSettings(db);
+  const backup = getBackupStatus(databasePath());
 
   return (
     <main className="shell">
@@ -54,6 +59,42 @@ export default async function SettingsPage({
       {params.ai === "down" ? (
         <p className="notice notice-warn">{COPY.ai.down}</p>
       ) : null}
+      {params.backedUp ? <p className="notice">{COPY.settings.backedUp}</p> : null}
+      {params.backupError ? (
+        <p className="notice notice-warn">{COPY.settings.backupError}</p>
+      ) : null}
+
+      <section className="panel" aria-labelledby="data-settings">
+        <h2 className="label" id="data-settings">
+          {COPY.settings.dataHeading}
+        </h2>
+        <p className="hint small">{COPY.settings.dataLede}</p>
+        <div className="inline-form" style={{ marginTop: 12 }}>
+          <a className="button" href="/export" download>
+            {COPY.settings.exportButton}
+          </a>
+          <form action={backupNow}>
+            <button className="button button-quiet" type="submit">
+              {COPY.settings.backupNow}
+            </button>
+          </form>
+        </div>
+        <p className="hint small">{COPY.settings.exportHint}</p>
+        <p className="label" style={{ marginTop: 16 }}>
+          {COPY.settings.backupHeading}
+        </p>
+        <p className="hint small">
+          {COPY.settings.backupLede(backup.count, backup.intervalHours)}
+        </p>
+        {backup.latestName ? (
+          <p className="hint small">{COPY.settings.backupLatest(backup.latestName)}</p>
+        ) : (
+          <p className="hint small">{COPY.settings.backupEmpty}</p>
+        )}
+        <p className="hint small">
+          {COPY.settings.backupPolicy(backup.retain, backup.intervalHours)}
+        </p>
+      </section>
 
       <section className="panel" aria-labelledby="checkin-settings">
         <h2 className="label" id="checkin-settings">
