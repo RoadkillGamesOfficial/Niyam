@@ -140,6 +140,20 @@ export function occurrencesFor(db: DatabaseSync, habitId: number): Occurrence[] 
     .all(habitId) as unknown as Occurrence[];
 }
 
+/**
+ * The habit table's default is SQLite's datetime('now'), which is UTC, while
+ * every due date in the app is a local calendar day. Convert once at this
+ * boundary so a habit created late in a negative-offset evening is not treated
+ * as having been created "tomorrow" and hidden until tomorrow.
+ */
+function createdOnLocalDate(value: string): Date {
+  const parsed = new Date(`${value.replace(" ", "T")}Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return parseDateKey(value.slice(0, 10));
+  }
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
 /** Which habits are due on `date`, using their own history for weekly windows. */
 export function dueHabits(db: DatabaseSync, date: Date): HabitRecord[] {
   return listHabits(db).filter((habit) => {
@@ -147,7 +161,7 @@ export function dueHabits(db: DatabaseSync, date: Date): HabitRecord[] {
       return false;
     }
     return isHabitDue(habit, date, {
-      createdOn: parseDateKey(habit.created_at.slice(0, 10)),
+      createdOn: createdOnLocalDate(habit.created_at),
       occurrences: occurrencesFor(db, habit.id),
     });
   });
