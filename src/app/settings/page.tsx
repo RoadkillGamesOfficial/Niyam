@@ -2,10 +2,12 @@ import { CONFIG } from "@/config";
 import { COPY } from "@/copy";
 import { getBackupStatus } from "@/db/backup";
 import { databasePath } from "@/db/database";
+import { getDayByDate, isPaused } from "@/db/days";
 import { getDatabase } from "@/db/index";
 import { getSettings } from "@/db/settings";
 import { localDateString } from "@/time";
 import { checkLocalModel, saveAiSettings } from "../ai-actions";
+import { dayStatus } from "../ui/day-status";
 import { backupNow, saveInsightSettings, saveSettings } from "../actions";
 import { SiteHeader } from "../ui/site-header";
 
@@ -30,6 +32,11 @@ export default async function SettingsPage({
   const db = getDatabase();
   const settings = getSettings(db);
   const backup = getBackupStatus(databasePath());
+  const date = localDateString();
+  const today = getDayByDate(db, date);
+  const headerStatus = today
+    ? dayStatus(today.plan_status, isPaused(db, today.id))
+    : undefined;
 
   return (
     <main className="shell">
@@ -37,7 +44,9 @@ export default async function SettingsPage({
         active="settings"
         title={COPY.settings.heading}
         lede={COPY.settings.intervalHint}
-        date={localDateString()}
+        date={date}
+        status={headerStatus?.label}
+        statusState={headerStatus?.state}
       />
 
       {params.saved ? <p className="notice">{COPY.settings.saved}</p> : null}

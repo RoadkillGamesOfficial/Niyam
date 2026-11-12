@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { COPY, PRODUCT_NAME } from "@/copy";
+import type { HeaderStatus } from "./day-status";
 import { CompassIcon, GearIcon, LedgerIcon, SunIcon } from "./sprites";
 
 export type HeaderSection = "today" | "reframe" | "insights" | "settings";
@@ -9,14 +10,6 @@ const TABS = [
   { section: "insights", href: "/insights", label: COPY.nav.insights, Icon: LedgerIcon },
   { section: "settings", href: "/settings", label: COPY.nav.settings, Icon: GearIcon },
 ] as const;
-
-const STATUS_STATES = {
-  running: "running",
-  paused: "paused",
-  closed: "closed",
-} as const;
-
-export type HeaderStatus = keyof typeof STATUS_STATES;
 
 /**
  * The shared wooden sign, inventory tabs and day plaque. This is chrome only:

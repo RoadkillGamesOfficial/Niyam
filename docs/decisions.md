@@ -657,10 +657,12 @@ gauges, a quest log and a habit garden. Visual only: no action, schema, route,
 scoring, scheduling or persistence behaviour changed.
 
 Adaptations made to fit the project rules:
-- The Google Fonts request in the spec is skipped. The app keeps a local-first
-  display stack (Pixelify Sans/Press Start 2P if installed, otherwise a crisp
-  monospace) and a rounded system body stack, with no runtime font request.
-- All art is original CSS or inline SVG; no game asset, sprite sheet or font is
+- The display and body faces are self-hosted rather than loaded from Google
+  Fonts at runtime: `public/fonts` contains Pixelify Sans and Nunito (latin
+  WOFF2) with their OFL licences, and `globals.css` declares both with
+  `font-display: swap`. The spec explicitly allows self-hosting, and this keeps
+  the project's no-outbound-request rule intact.
+- All art is original CSS or inline SVG; no game asset or sprite sheet is
   copied or fetched.
 - The crop stage uses the existing per-habit streak: 0 = seed, 1 = sprout,
   2–3 = small plant, 4–6 = flowering, 7+ = harvest-ready. The done-today
@@ -673,7 +675,18 @@ Adaptations made to fit the project rules:
   behaviour wins; no new audio or settings switch was added.
 - Existing level names and thresholds are unchanged. The farm-flavoured level
   ladder was optional and would have changed product identity strings.
+- The shared day plaque maps draft to the existing Draft copy, a paused active
+  plan to Paused with the amber dot, and closed to Closed with the grey dot. It
+  reads pause windows on every screen; Settings uses the existing read-only day
+  lookup so it never creates a day just to show a plaque.
+- The garden uses the existing per-habit streak for crop stage, and a completed
+  plan task carrying that habit id for the done-today sparkle. Each habit name
+  is on a parchment nameplate beneath its crop, and its two actions split the
+  tile width so neither label can clip.
 
 Verification: `npm test` 156/156, `npm run build` passes, and the rendered DOM
 was checked at 375, 768 and 1440 widths for overflow, control sizes, active tabs,
 focus labels, the due-check-in state and the absence of large radii or blur.
+The final browser pass additionally exercised paused, due, missed, done-today,
+XP, level-up, combo and reduced-motion states in headless Chromium; the results
+are recorded at the end of this entry.

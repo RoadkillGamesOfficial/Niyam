@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { COPY } from "@/copy";
 import { getBrainDump, listBrainDumps } from "@/db/brain-dumps";
-import { getOrCreateDayForDate } from "@/db/days";
+import { getOrCreateDayForDate, isPaused } from "@/db/days";
 import { getDatabase } from "@/db/index";
 import { listPlan } from "@/db/plan";
 import { getSettings } from "@/db/settings";
 import { getTask } from "@/db/tasks";
 import { localDateString } from "@/time";
 import { PendingButton } from "../pending-button";
+import { dayStatus } from "../ui/day-status";
 import { SiteHeader } from "../ui/site-header";
 import {
   acceptMicroAction,
@@ -53,7 +54,9 @@ export default async function ReframePage({
   const dump =
     Number.isInteger(dumpId) && dumpId > 0 ? getBrainDump(db, dumpId) : undefined;
   const past = listBrainDumps(db);
-  const day = getOrCreateDayForDate(db, localDateString());
+  const date = localDateString();
+  const day = getOrCreateDayForDate(db, date);
+  const headerStatus = dayStatus(day.plan_status, isPaused(db, day.id));
   const openItems = listPlan(db, day.id).filter((item) => item.status === "open");
   const sourceTask = dump?.source_task_id ? getTask(db, dump.source_task_id) : undefined;
 
@@ -64,7 +67,9 @@ export default async function ReframePage({
         title={COPY.reframe.heading}
         lede={COPY.reframe.lede}
         hint={COPY.reframe.shortcutHint}
-        date={localDateString()}
+        date={date}
+        status={headerStatus.label}
+        statusState={headerStatus.state}
       />
 
       {params.deleted ? <p className="notice">{COPY.reframe.deleted}</p> : null}

@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { COPY } from "@/copy";
-import { getOrCreateDayForDate } from "@/db/days";
+import { getOrCreateDayForDate, isPaused } from "@/db/days";
 import { getDatabase } from "@/db/index";
 import {
   getCompletedWeekSummary,
@@ -15,6 +15,7 @@ import {
 } from "@/db/insights";
 import { getSettings } from "@/db/settings";
 import { localDateString } from "@/time";
+import { dayStatus } from "../ui/day-status";
 import { SiteHeader } from "../ui/site-header";
 
 // Like the dashboard, this page reads SQLite per request. Insight views are
@@ -41,7 +42,9 @@ function hourLabel(hour: number): string {
 
 export default async function InsightsPage() {
   const db = getDatabase();
-  const day = getOrCreateDayForDate(db, localDateString());
+  const date = localDateString();
+  const day = getOrCreateDayForDate(db, date);
+  const headerStatus = dayStatus(day.plan_status, isPaused(db, day.id));
   const settings = getSettings(db);
   const daily = getDailySummary(db, day.id);
   const week = getWeeklySummary(db);
@@ -122,7 +125,9 @@ export default async function InsightsPage() {
         active="insights"
         title={COPY.insights.heading}
         lede={COPY.insights.lede}
-        date={localDateString()}
+        date={date}
+        status={headerStatus.label}
+        statusState={headerStatus.state}
       />
 
       <section className="panel" aria-labelledby="summary-heading">

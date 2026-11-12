@@ -18,6 +18,7 @@ import { localDateString } from "@/time";
 import { CheckInWatcher } from "./check-in";
 import { CompletionWatcher } from "./completion-watcher";
 import { RewardWatcher } from "./reward-watcher";
+import { dayStatus } from "./ui/day-status";
 import { SiteHeader } from "./ui/site-header";
 import { CropIcon, FlowerIcon, Mascot, QuestIcon, SproutIcon } from "./ui/sprites";
 import { StatsHud } from "./ui/stats-hud";
@@ -134,13 +135,7 @@ export default async function Home({
       doneHabitIds.add(item.habit_id);
     }
   }
-  const planStatus = day.plan_status === "draft"
-    ? COPY.home.draftBadge
-    : day.plan_status === "active"
-      ? COPY.home.runningBadge
-      : COPY.home.closedBadge;
-  const planStatusState: "running" | "paused" | "closed" =
-    day.plan_status === "active" ? "running" : day.plan_status === "draft" ? "paused" : "closed";
+  const headerStatus = dayStatus(day.plan_status, paused);
 
   return (
     <main className="shell">
@@ -148,8 +143,8 @@ export default async function Home({
         active="today"
         title={COPY.nav.home}
         date={date}
-        status={planStatus}
-        statusState={planStatusState}
+        status={headerStatus.label}
+        statusState={headerStatus.state}
       />
 
       <CompletionWatcher taskId={completedId} />
@@ -762,9 +757,12 @@ export default async function Home({
       </div>
 
       <section className="panel heat-panel" aria-labelledby="heat-heading">
-        <h2 className="label" id="heat-heading">
-          {COPY.progress.integrityLabel}
-        </h2>
+        <div className="heat-copy">
+          <h2 className="label" id="heat-heading">
+            {COPY.progress.integrityLabel}
+          </h2>
+          <p className="hint small">{COPY.progress.integrityHint}</p>
+        </div>
         <div
           className="heatmap"
           role="img"
