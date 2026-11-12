@@ -6,6 +6,9 @@
 2026-11-12.**
 **v1 hardening is implemented and browser-verified 2026-11-12: snapshot export,
 bounded automatic backups, and check-in quick keys.**
+**The cozy pixel-farm visual redesign is implemented and browser-inspected
+2026-11-12. `docs/redesign.md` is the governing visual spec; the adaptation notes
+are recorded in `docs/decisions.md`.**
 The app now runs a full
 day: plan with a profile, start the day, check-ins with XP and combo, habits,
 settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
@@ -17,8 +20,8 @@ there. At this handoff, `npm test` is 156/156 and `npm run build` passes; the
 70-test run above is the Phase 1 baseline.
 
 Commits on this branch, oldest first. `origin` is configured at
-`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 17 commits ahead
-of `origin/main` after the follow-up acceptance commit. Nothing has been pushed.
+`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 19 commits ahead
+of `origin/main` after the redesign and notes commits. Nothing has been pushed.
 
 | Commit | What |
 |--------|------|
@@ -48,10 +51,12 @@ of `origin/main` after the follow-up acceptance commit. Nothing has been pushed.
 | `5b6d0b5` | checkin: add O/P/D quick keys for the three responses |
 | `452a29e` | test: prove the restore round-trip and quick-key guards |
 | `dfc3fed` | ai: require the configured model when checking readiness |
+| `d4a9ce3` | test: close the live acceptance gaps |
+| `e2698b0` | feat(ui): rebuild the app as a cozy pixel farm |
 
 Every hash in this table resolves with `git cat-file -t`. The table now covers
-the Phase 3 and Phase 4 work and the 2026-11-11 v1 hardening commits. The
-live-acceptance follow-up is the tip commit after the table.
+the Phase 3 and Phase 4 work, the 2026-11-11 v1 hardening commits and the
+2026-11-12 redesign. The design-notes commit is the tip after the table.
 
 ## How to run
 ```

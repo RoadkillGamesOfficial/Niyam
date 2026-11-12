@@ -646,3 +646,34 @@ heavy tasks are retained. The comment now matches this behavior.
 
 What it rules out: silently scheduling into a future day, dropping heavy tasks
 when peaks are full, or treating a past peak as usable.
+
+## 2026-11-12 — Visual redesign: cozy pixel farm
+
+Decision: `docs/redesign.md` now governs interface chrome and supersedes the
+earlier "no pixel art" line for this visual pass. The product keeps its warm,
+calm material language but gains hard-edged pixel panels, original inline-SVG
+sprites, a wooden sign, inventory tabs, a mascot-led check-in dialogue, HUD
+gauges, a quest log and a habit garden. Visual only: no action, schema, route,
+scoring, scheduling or persistence behaviour changed.
+
+Adaptations made to fit the project rules:
+- The Google Fonts request in the spec is skipped. The app keeps a local-first
+  display stack (Pixelify Sans/Press Start 2P if installed, otherwise a crisp
+  monospace) and a rounded system body stack, with no runtime font request.
+- All art is original CSS or inline SVG; no game asset, sprite sheet or font is
+  copied or fetched.
+- The crop stage uses the existing per-habit streak: 0 = seed, 1 = sprout,
+  2–3 = small plant, 4–6 = flowering, 7+ = harvest-ready. The done-today
+  sparkle comes from a completed plan task carrying that habit id.
+- Reward feedback is client-only and visual: the task XP shown is the configured
+  XP for the completed task's load; level-up/combo animation state is kept in
+  `localStorage`. No score is calculated or stored by the redesign.
+- The existing interruption-level audio remains. The spec's "no sound by
+  default" conflicts with the shipped Standard level, so the instruction to keep
+  behaviour wins; no new audio or settings switch was added.
+- Existing level names and thresholds are unchanged. The farm-flavoured level
+  ladder was optional and would have changed product identity strings.
+
+Verification: `npm test` 156/156, `npm run build` passes, and the rendered DOM
+was checked at 375, 768 and 1440 widths for overflow, control sizes, active tabs,
+focus labels, the due-check-in state and the absence of large radii or blur.
