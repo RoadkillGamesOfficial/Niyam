@@ -103,6 +103,12 @@ export async function ollamaChat(request: ChatRequest): Promise<unknown> {
 
 export type OllamaStatus = { ok: boolean; models: string[] };
 
+/** A running Ollama is not enough: the configured model must be installed. */
+export function modelIsInstalled(models: string[], model: string): boolean {
+  const wanted = model.trim();
+  return wanted.length > 0 && models.includes(wanted);
+}
+
 /** Short probe for the settings button. It never throws. */
 export async function checkOllama(
   baseUrl: string = CONFIG.ai.baseUrl,

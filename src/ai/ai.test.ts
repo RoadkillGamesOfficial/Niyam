@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { CONFIG } from "../config.ts";
-import { AiConfigError, assertLoopback } from "./ollama.ts";
+import { AiConfigError, assertLoopback, modelIsInstalled } from "./ollama.ts";
 import { fillPrompt, loadPrompt } from "./prompts.ts";
 import { estimateFor, fallbackPlan, generatePlan, peakGuidance } from "./planner.ts";
 import { fallbackReframe, generateReframe, safetyResponse } from "./reframe.ts";
@@ -265,6 +265,19 @@ describe("ollama client contract", () => {
     assert.throws(() => assertLoopback("http://192.168.1.10:11434"), AiConfigError);
     assert.throws(() => assertLoopback("https://example.com"), AiConfigError);
     assert.throws(() => assertLoopback("not a url"), AiConfigError);
+  });
+
+  it("requires the configured model, not just a running server", () => {
+    assert.equal(
+      modelIsInstalled(["qwen2.5:1.5b-instruct"], "qwen2.5:1.5b-instruct"),
+      true,
+    );
+    assert.equal(modelIsInstalled([], "qwen2.5:1.5b-instruct"), false);
+    assert.equal(
+      modelIsInstalled(["llama3.2:1b"], "qwen2.5:1.5b-instruct"),
+      false,
+    );
+    assert.equal(modelIsInstalled(["qwen2.5:1.5b-instruct"], "  "), false);
   });
 
   it("extracts JSON from a fenced reply and rejects prose only", () => {

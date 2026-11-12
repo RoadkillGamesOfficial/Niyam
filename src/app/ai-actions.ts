@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { checkOllama } from "@/ai/ollama";
+import { checkOllama, modelIsInstalled } from "@/ai/ollama";
 import { generatePlan } from "@/ai/planner";
 import { generateReframe } from "@/ai/reframe";
 import { generateReplan } from "@/ai/replan";
@@ -369,8 +369,11 @@ export async function replanWithAi(formData: FormData): Promise<void> {
 }
 
 export async function checkLocalModel(): Promise<void> {
+  const db = getDatabase();
+  const settings = getSettings(db);
   const status = await checkOllama();
-  redirect(`/settings?ai=${status.ok ? "ok" : "down"}`);
+  const ready = status.ok && modelIsInstalled(status.models, settings.ai_model);
+  redirect(`/settings?ai=${ready ? "ok" : "down"}`);
 }
 
 export async function saveAiSettings(formData: FormData): Promise<void> {
