@@ -1,8 +1,9 @@
 # Phase 3: Local AI Integration
 
-Status: **implemented 2026-11-09, pending live testing.** The model itself has
-not been run yet, by request; the offline rules, schema and fallbacks are
-covered by tests. See "What landed" at the end for files and deviations.
+Status: **implemented 2026-11-09; live-tested with Ollama 0.40.16 on 2026-11-12.**
+The offline rules, schema, fallbacks and live model/browser paths are covered.
+See "What landed" at the end for files and deviations, and
+`docs/live-acceptance-2026-11-12.md` for the acceptance run.
 
 Prerequisites: Phase 2 accepted and reviewed. Read PDD Sections 8.1, 8.3, 11, and 12.
 
@@ -80,7 +81,7 @@ place:
   "Check the model" button that probes Ollama without blocking page loads.
 - **Benchmark**: `scripts/benchmark-ai.mjs` runs `docs/ai-test-set.json` against
   the candidates and prints time and structure pass rate; `--out` writes a
-  markdown table. It has not been run.
+  markdown table. It was run on 2026-11-12; see `docs/ai-benchmark.md`.
 - **Data**: migration `003_phase3.sql` adds `brain_dump`, `plan_proposal`,
   `plan_proposal_item`, the AI settings columns and `task.brain_dump_id`;
   `004_phase3_reframe_task.sql` adds `brain_dump.source_task_id`.
@@ -89,8 +90,8 @@ Deviations from the suggested order: the benchmark script exists but was not
 run (no model runs this session), and the prompt files are `prompts/planner.md`,
 `prompts/reframe.md` and `prompts/shrink.md` rather than templates inside code.
 
-Still to do: run the benchmark and record the chosen model in
-`docs/decisions.md`, then exercise the acceptance list above on a running app.
+The benchmark and the acceptance list above were exercised on 2026-11-12; the
+results are in `docs/live-acceptance-2026-11-12.md`.
 
 ## Requirement map (audit 2026-11-09)
 
@@ -100,7 +101,7 @@ was run.
 
 | Requirement | Implementation | User path |
 | --- | --- | --- |
-| Model benchmark and recorded choice (R9) | `scripts/benchmark-ai.mjs`, `docs/ai-test-set.json`, `CONFIG.ai.candidates` | `node scripts/benchmark-ai.mjs`; choice editable at /settings. Run pending. |
+| Model benchmark and recorded choice (R9) | `scripts/benchmark-ai.mjs`, `docs/ai-test-set.json`, `CONFIG.ai.candidates` | `node scripts/benchmark-ai.mjs`; choice editable at /settings. Run 2026-11-12; qwen 8/8 at 758 ms. |
 | Ollama on loopback only (ARCH-1) | `src/ai/ollama.ts` `assertLoopback`, `CONFIG.ai.baseUrl` | every AI form; a non-local address throws before a request |
 | PLAN-1 text to structured tasks | `src/ai/planner.ts`, `src/ai/validate.ts`, `proposePlan` | Today (draft) → "Shaping a messy list" → review |
 | PLAN-4 re-plan the rest | `src/ai/replan.ts`, `reorderOpenItems`, `replanWithAi` | Today (running) → "Re-plan the rest" |
@@ -123,6 +124,6 @@ was run.
 | Malformed output never saved | validation runs before `createProposal` / `createBrainDump`; review edits are clamped | every AI path |
 | Distress test inputs trigger safety | `detectDistress` unit tests include explicit phrases and ordinary stress | /reframe |
 
-Open: the benchmark has not been run, the prompt voice has not had a separate
-voice-writer pass, and no acceptance step has been exercised against a live
-model or browser yet.
+Open: the prompt voice has not had a separate voice-writer pass. The benchmark,
+live model and browser acceptance are recorded in
+`docs/live-acceptance-2026-11-12.md`.

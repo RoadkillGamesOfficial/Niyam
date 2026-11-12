@@ -545,3 +545,37 @@ rewriting history or changing the schema.
 
 What it rules out: rewriting historical timestamps or treating UTC dates as local
 calendar dates.
+
+## 2026-11-12 — Live acceptance: model choice and readiness
+
+### qwen2.5:1.5b-instruct remains the default after the three-model benchmark
+
+Decision: keep `qwen2.5:1.5b-instruct` as the default. The benchmark over the
+eight committed planner/reframe cases produced:
+
+| Model | Median reply | Structured |
+| --- | --- | --- |
+| `qwen2.5:1.5b-instruct` | 758 ms | 8/8 |
+| `llama3.2:1b` | 454 ms | 7/8 |
+| `gemma2:2b` | 3,485 ms | 8/8 |
+
+Why: qwen was the fastest model with a perfect structured reply rate. llama was
+faster but missed one reframe schema; gemma was reliable but much slower. The
+model remains editable in Settings, and the full table is in
+`docs/ai-benchmark.md`.
+
+What it rules out: treating a running Ollama server as proof that the selected
+model is usable, and choosing a model from speed alone.
+
+### Readiness requires the configured model, not just a running server
+
+Decision: `checkLocalModel` now checks `/api/tags` for the exact configured model
+name before reporting ready. The predicate is `modelIsInstalled` in
+`src/ai/ollama.ts`, covered by a unit test (`dfc3fed`).
+
+Why: during live setup Ollama was running with zero models installed, and
+Settings said “The local model answered. It is ready.” Every AI action would
+have failed. A server probe is not a model probe.
+
+What it rules out: reporting readiness from server health alone; a missing or
+misspelled model now shows the existing “did not answer” state.

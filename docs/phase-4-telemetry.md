@@ -1,5 +1,8 @@
 # Phase 4: Telemetry and Calibration
 
+Status: **implemented 2026-11-10; live-tested on 2026-11-12.** See
+`docs/live-acceptance-2026-11-12.md`.
+
 Prerequisites: Phase 3 accepted and reviewed, plus enough logged history to make charts meaningful (generate seed data for testing). Read PDD Section 8.5.
 
 ## Goal
@@ -65,11 +68,11 @@ through `src/ai/planner.ts`; the deterministic scheduler is what actually writes
 | Seed data for testing | `seedHistory` writes closed days, tasks, pulses, XP and habit occurrences; `npm run seed` targets `data/seed.db` | `npm run seed -- --db data/seed.db --fresh`, then `NIYAM_DB=data/seed.db npm run dev` |
 | INS-1 local data only | every query opens the local `node:sqlite` database; there is no fetch or network path in the insight views | static review |
 | INS-2 observations, never judgments | `COPY.insights` lines report counts and next steps; no failure, score or should language | `/insights` copy |
-| Views stay fast with months of data | SQL grouping in the data layer; the heat map is seven 24-cell rows, not a row per pulse; existing day/task/pulse indexes cover the joins | seeded 60-day integration test; no browser timing claimed |
+| Views stay fast with months of data | SQL grouping in the data layer; the heat map is seven 24-cell rows, not a row per pulse; existing day/task/pulse indexes cover the joins | seeded 84-day page answered in 32–65 ms over five requests |
 
-Open: no browser or live model was run, so the visual layout, the end-to-end
-Settings toggle, and the planner with a real model remain unverified. The
-reviewer pass is also still pending.
+The browser check, end-to-end Settings toggle, seeded aggregate hand-check and
+performance sample are recorded in `docs/live-acceptance-2026-11-12.md`. An
+independent reviewer pass is still pending.
 
 ## Handoff
 Update `docs/handoff.md` and `docs/decisions.md`. Run the reviewer. Then review the post-v1 backlog in the PDD (screen time import, desktop wrapper, rewards, and others) and decide what comes next.

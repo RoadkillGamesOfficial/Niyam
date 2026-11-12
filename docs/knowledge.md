@@ -10,9 +10,9 @@ A personal productivity companion for ONE user, running entirely on one laptop. 
 
 **Phase 1: Local Foundation.** Complete and reviewed.
 **Phase 2: Game Loop.** Complete (2026-11-08): manual plan with profiles, check-ins, XP/combo/levels/integrity, habits, settings and day close, run end to end, reviewed and voice-passed.
-**Phase 3: Local AI.** Implemented 2026-11-09, pending live testing: Ollama planner with review, Reframe brain dumps with history and safety path, AI task shrinkage, validation and fallbacks, and an AI on/off switch. The model has not been run yet. The UI uses the warm Stardew-inspired look specified in `docs/design.md` (implemented 2026-11-08).
-**Phase 4: Telemetry and Calibration.** Implemented 2026-11-10, pending live testing: `/insights` with a drift heat map, completion by profile, weekly trends, habit insights, peak-window planning with a settings switch, daily/weekly observations, and a separate seed database for review.
-**v1 hardening.** Implemented 2026-11-11: snapshot export from Settings and `npm run export`, bounded automatic backups on database open, and O/P/D quick keys on the inline check-in. Tests are green; browser and live-model acceptance are still deferred.
+**Phase 3: Local AI.** Implemented 2026-11-09 and live-tested with Ollama 0.40.16 on 2026-11-12: planner with review, Reframe brain dumps with edit/delete and safety path, AI task shrinkage, live re-plan, validation and fallbacks, and an AI on/off switch. The UI uses the warm Stardew-inspired look specified in `docs/design.md` (implemented 2026-11-08).
+**Phase 4: Telemetry and Calibration.** Implemented 2026-11-10 and live-tested on 2026-11-12: `/insights` with a drift heat map, completion by profile, weekly trends, habit insights, peak-window planning with a settings switch, daily/weekly observations, and a separate seed database for review.
+**v1 hardening.** Implemented and browser-verified 2026-11-12: snapshot export from Settings and `npm run export`, bounded automatic backups on database open, and O/P/D quick keys on the inline check-in. Full details are in `docs/live-acceptance-2026-11-12.md`.
 (Decisions settled 2026-11-05: `node:sqlite`, `node:test`, plain CSS. See `docs/decisions.md`.)
 Exit criteria: a task entered in the UI appears in the local database file and displays back correctly.
 

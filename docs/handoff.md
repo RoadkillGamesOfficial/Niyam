@@ -2,9 +2,10 @@
 
 ## Status
 **Phase 1 complete. Phase 2 complete, reviewed and voice-passed (2026-11-08).**
-**Phase 3 and Phase 4 are implemented, pending live testing (2026-11-10).**
-**v1 hardening is implemented 2026-11-11: snapshot export, bounded automatic
-backups, and check-in quick keys, pending browser verification.**
+**Phase 3 and Phase 4 are implemented and live-tested with Ollama 0.40.16 on
+2026-11-12.**
+**v1 hardening is implemented and browser-verified 2026-11-12: snapshot export,
+bounded automatic backups, and check-in quick keys.**
 The app now runs a full
 day: plan with a profile, start the day, check-ins with XP and combo, habits,
 settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
@@ -12,11 +13,12 @@ Verified end to end on 2026-11-08 with the dev server on port 3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
 killed and restarted the dev server → the task and its done state were still
-there. `npm test` (70 tests) and `npm run build` both pass.
+there. At this handoff, `npm test` is 131/131 and `npm run build` passes; the
+70-test run above is the Phase 1 baseline.
 
 Commits on this branch, oldest first. `origin` is configured at
-`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 14 commits ahead
-of `origin/main` after the test-hardening commit. Nothing has been pushed.
+`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 16 commits ahead
+of `origin/main` after the live-acceptance docs commit. Nothing has been pushed.
 
 | Commit | What |
 |--------|------|
@@ -44,10 +46,12 @@ of `origin/main` after the test-hardening commit. Nothing has been pushed.
 | `70191e6` | data: snapshot export, automatic backups and retention |
 | `7086a6b` | habits: compare UTC creation times against local due dates |
 | `5b6d0b5` | checkin: add O/P/D quick keys for the three responses |
+| `452a29e` | test: prove the restore round-trip and quick-key guards |
+| `dfc3fed` | ai: require the configured model when checking readiness |
 
 Every hash in this table resolves with `git cat-file -t`. The table now covers
-the Phase 3 and Phase 4 work and the 2026-11-11 v1 hardening commits. The docs
-commit and the test-hardening commit follow the table.
+the Phase 3 and Phase 4 work and the 2026-11-11 v1 hardening commits. The
+live-acceptance docs commit follows the table.
 
 ## How to run
 ```
@@ -388,8 +392,9 @@ form's Add button overflowed its card.
 
 ## Phase 3 — local AI (2026-11-09)
 
-Implemented, not yet run: no model was started and no browser checks were made
-this session, by request. `npm test` (104 tests) and `npm run build` pass.
+Implemented 2026-11-09 and live-tested 2026-11-12. `npm test` is 131/131 and
+`npm run build` passes; the live runs are in
+`docs/live-acceptance-2026-11-12.md`.
 
 What is in place: a loopback-only Ollama client (`src/ai/ollama.ts`, built-in
 fetch, 60s timeout, one JSON retry); validated planner output reviewed before it
@@ -401,14 +406,14 @@ field and connection check in Settings; migration `003_phase3.sql` adds the
 brain dump, proposal, item tables and AI settings columns.
 
 Default model `qwen2.5:1.5b-instruct` (candidates in `src/config.ts`). The
-benchmark is `node scripts/benchmark-ai.mjs` over `docs/ai-test-set.json`; it has
-not been run, so the model choice is still unmeasured.
+benchmark was run on 2026-11-12 against the three configured candidates; the
+results are in `docs/ai-benchmark.md`, and qwen remains the default.
 
-To test on a running app: `ollama pull qwen2.5:1.5b-instruct`, `ollama serve`,
-`npm run dev`. Shape a draft list and accept the review, open `/reframe` (or
-press R), try another angle, accept the step, delete a dump, run Drifted → Ask
-for a smaller step, then stop Ollama and repeat: every screen must still work in
-fallback mode and say so.
+The live test recipe was `ollama pull qwen2.5:1.5b-instruct`, `ollama serve`, then
+the production build. It shaped a draft list and accepted the review, opened
+`/reframe` (and with R), tried another angle, accepted the step, edited and
+deleted a dump, ran Drifted → Ask for a smaller step, then stopped Ollama and
+repeated the fallback paths.
 
 ### Audit fixes (2026-11-09)
 
@@ -436,9 +441,9 @@ tests; `npm run build` passed. The requirement map is in
 
 ## Phase 4 — telemetry and calibration (2026-11-10)
 
-Implemented, not yet run in a browser or against a live model: `npm test` (114
-tests) and `npm run build` pass on the working tree. The seed CLI was exercised
-against a throwaway database and then removed.
+Implemented 2026-11-10 and live-tested 2026-11-12. The page rendered against
+seeded history and every aggregate was hand-checked; the live record is in
+`docs/live-acceptance-2026-11-12.md`.
 
 What exists: `/insights` with a 7 × 24 drift heat map, completion by Daily
 Profile, eight weekly trend rows (consistency, longest on-track run, integrity),
@@ -458,14 +463,13 @@ demo generator is `src/db/seed.ts` with `scripts/seed-insights.mjs`: run
 override keep real data out of seeding. Migration `005_phase4_insights.sql` adds
 the switch.
 
-The phase's requirement map is in `docs/phase-4-telemetry.md`. Still open: live
-acceptance and visual review, an independent reviewer pass, and the unrun model
-benchmark from Phase 3.
+The phase's requirement map is in `docs/phase-4-telemetry.md`. Still open: an
+independent reviewer pass.
 
 ## v1 hardening — export, backups and quick keys (2026-11-11)
 
-Implemented and covered by unit/integration tests. No browser and no live model
-was run, by request.
+Implemented and covered by unit/integration tests, then browser-verified on
+2026-11-12.
 
 ### Export
 
@@ -508,14 +512,31 @@ suppression, modal suppression, unrelated keys, and storage of each response.
 
 ### Verification and open items
 
-`npm test` is 130/130 green and `npm run build` passes after the hardening. The
+`npm test` is 131/131 green and `npm run build` passes after the hardening. The
 export CLI was exercised against a throwaway database, and the restore
 round-trip test installs the snapshot over a mutated live file and finds the
 original task and day again. The shortcut tests name O, P and D separately and
 cover typing, content-editable, modal, modifier, repeat and unrelated-key
-guards. Still open: a browser check of the download, the Settings backup button
-and the shortcut suppression, plus the deferred Phase 3 and Phase 4 live
-acceptance and model benchmark.
+guards. The download route, Settings backup button, typed-note suppression and
+all three quick keys were also exercised in the browser on 2026-11-12.
+
+## Live acceptance (2026-11-12)
+
+Production build, browser driven directly, isolated `NIYAM_DB` databases, Ollama
+0.40.16 on loopback. `npm test` 131/131 and `npm run build` passed.
+
+- Phase 3: live planner produced 5 structured items, nothing saved before
+  confirmation, edits/exclusion applied; live Reframe, another angle, task-linked
+  step and micro XP worked; live shrink and re-plan worked; planner, reframe,
+  shrink and re-plan all fell back with Ollama stopped; safety and AI-off paths
+  worked; edit/delete of a dump worked.
+- Phase 4: seeded heat map, profile completion, eight weekly trends, habit
+  insights and two peak windows matched direct SQL; toggling peak planning off
+  cleared starts, on placed a heavy task at 09:00 in the 09:00–12:00 peak;
+  `/insights` answered in 32–65 ms.
+- The model readiness check was fixed to require the configured model, not just
+  a running server (`dfc3fed`).
+- Full details, numbers and limits: `docs/live-acceptance-2026-11-12.md`.
 
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;

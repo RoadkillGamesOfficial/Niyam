@@ -1,10 +1,11 @@
 # local-discipline-companion
 
 A local-first discipline companion. One page, one SQLite file, no accounts, no
-network calls while it runs. Phases 1–4 are implemented, with live testing still
-pending for the local-AI and insight layers: a manual plan with a Daily Profile,
-check-ins with XP and combo, habits, settings, a day close, an Ollama planner and
-Reframe flow with fallbacks, and a local insights view with peak-window planning.
+network calls while it runs. Phases 1–4 are implemented and were live-tested
+with local Ollama on 2026-11-12: a manual plan with a Daily Profile, check-ins
+with XP and combo, habits, settings, a day close, an Ollama planner and Reframe
+flow with fallbacks, and a local insights view with peak-window planning. See
+`docs/live-acceptance-2026-11-12.md` for the test record.
 
 ## Requirements
 
