@@ -69,8 +69,10 @@ function parseLoad(value: unknown): CognitiveLoad {
 
 function parseMinutes(value: unknown): number {
   const number = typeof value === "number" ? value : Number(value);
-  const rounded = Number.isFinite(number) ? Math.round(number) : 15;
-  return Math.min(180, Math.max(5, rounded));
+  if (!Number.isFinite(number) || number < 5 || number > 180) {
+    throw new AiFormatError("The planner reply contained an out-of-range duration.");
+  }
+  return Math.round(number);
 }
 
 /** Accepts {"tasks": [...]} or a bare array; skips unusable rows. */
@@ -167,8 +169,10 @@ export function parseShrinkOutput(raw: unknown): ShrinkReading {
     throw new AiFormatError("The shrink reply had no usable title.");
   }
   const number = typeof raw.minutes === "number" ? raw.minutes : Number(raw.minutes);
-  const minutes = Number.isFinite(number) ? Math.min(15, Math.max(1, Math.round(number))) : 5;
-  return { title, minutes };
+  if (!Number.isFinite(number) || number < 1 || number > 15) {
+    throw new AiFormatError("The shrink reply contained an out-of-range duration.");
+  }
+  return { title, minutes: Math.round(number) };
 }
 
 /**

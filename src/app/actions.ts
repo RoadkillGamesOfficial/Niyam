@@ -91,10 +91,11 @@ export async function toggleTask(formData: FormData): Promise<void> {
   }
 
   const done = task.status !== "done";
+  const firstCompletion = done && !hasTaskCompletionEvent(db, task.id);
   setTaskStatus(db, task.id, done ? "done" : "open");
   recordHabitOutcomeForTask(db, task.id, done);
 
-  if (done && !hasTaskCompletionEvent(db, task.id)) {
+  if (firstCompletion) {
     addXpEvent(db, {
       dayId: task.day_id,
       amount: taskXp(task.cognitive_load),
@@ -113,7 +114,7 @@ export async function toggleTask(formData: FormData): Promise<void> {
     }
   }
 
-  redirect("/");
+  redirect(firstCompletion ? `/?completed=${task.id}` : "/");
 }
 
 export async function setProfile(formData: FormData): Promise<void> {

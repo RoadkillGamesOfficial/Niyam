@@ -13,12 +13,12 @@ Verified end to end on 2026-11-08 with the dev server on port 3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
 killed and restarted the dev server → the task and its done state were still
-there. At this handoff, `npm test` is 131/131 and `npm run build` passes; the
+there. At this handoff, `npm test` is 156/156 and `npm run build` passes; the
 70-test run above is the Phase 1 baseline.
 
 Commits on this branch, oldest first. `origin` is configured at
-`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 16 commits ahead
-of `origin/main` after the live-acceptance docs commit. Nothing has been pushed.
+`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 17 commits ahead
+of `origin/main` after the follow-up acceptance commit. Nothing has been pushed.
 
 | Commit | What |
 |--------|------|
@@ -51,7 +51,7 @@ of `origin/main` after the live-acceptance docs commit. Nothing has been pushed.
 
 Every hash in this table resolves with `git cat-file -t`. The table now covers
 the Phase 3 and Phase 4 work and the 2026-11-11 v1 hardening commits. The
-live-acceptance docs commit follows the table.
+live-acceptance follow-up is the tip commit after the table.
 
 ## How to run
 ```
@@ -536,6 +536,13 @@ Production build, browser driven directly, isolated `NIYAM_DB` databases, Ollama
   `/insights` answered in 32–65 ms.
 - The model readiness check was fixed to require the configured model, not just
   a running server (`dfc3fed`).
+- Follow-up pass: a loopback stub drove invalid JSON, truncated JSON, wrong
+  schema and absurd values through planner, re-plan, reframe and shrink; every
+  path fell back, proposals/dumps were marked `fallback = 1`, and no model junk
+  became a task. The live re-plan prompt's three-index example was fixed to state
+  the exact item count. After-peaks, partly-past-peak and all-heavy scheduling
+  are pinned by tests. Completion notifications are once-per-task and
+  permission-gated; `npm test` is 156/156.
 - Full details, numbers and limits: `docs/live-acceptance-2026-11-12.md`.
 
 ## Rules being followed

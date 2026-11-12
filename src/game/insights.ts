@@ -120,8 +120,9 @@ export function minutesFromClock(clock: string): number {
 /**
  * Lays the existing order onto the clock. When peak windows exist, a heavy task
  * that would start outside one waits for the next window instead; light and
- * medium tasks keep filling the time in between. Order is preserved, so this
- * never rewrites the user's plan.
+ * medium tasks keep filling the time in between. If every peak is already past,
+ * it keeps the current time rather than scheduling into tomorrow. Order is
+ * preserved, so this never rewrites the user's plan.
  */
 export function assignPlannedStarts(
   items: Array<{ minutes?: number | null; load: InsightLoad }>,

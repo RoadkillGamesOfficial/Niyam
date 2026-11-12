@@ -62,6 +62,10 @@ typing, and they stay inactive while the firm check-in overlay (a modal) owns th
 page. Quick keys submit the response without a note; use the buttons when you
 want to add one.
 
+Finishing a task shows one quiet browser notification when notification
+permission is already granted. Reopening and finishing the same task again does
+not repeat it, and a denied permission never blocks the completion.
+
 ## Local AI (Phase 3, optional)
 
 The app works fully without a model. To use the AI features, install

@@ -15,6 +15,7 @@ import { xpForDay } from "@/db/xp";
 import { slotKey } from "@/game/pulses";
 import { localDateString } from "@/time";
 import { CheckInWatcher } from "./check-in";
+import { CompletionWatcher } from "./completion-watcher";
 import {
   acceptPlanProposal,
   aiShrinkTask,
@@ -68,6 +69,7 @@ export default async function Home({
     aiOff?: string;
     replanned?: string;
     replanFallback?: string;
+    completed?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -115,6 +117,9 @@ export default async function Home({
       : null;
 
   const current = plan.find((item) => item.status === "open");
+  const completedTaskId = Number(params.completed);
+  const completedId =
+    Number.isInteger(completedTaskId) && completedTaskId > 0 ? completedTaskId : null;
 
   return (
     <main className="shell">
@@ -145,6 +150,8 @@ export default async function Home({
           </span>
         </p>
       </header>
+
+      <CompletionWatcher taskId={completedId} />
 
       {params.added ? <p className="notice">{COPY.ai.added}</p> : null}
       {params.shrunk ? <p className="notice">{COPY.ai.shrinkNotice}</p> : null}

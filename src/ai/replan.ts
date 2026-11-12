@@ -36,6 +36,8 @@ export async function generateReplan(
     time: input.time,
     note: input.note ? `Note from the user: ${input.note}` : "",
     items,
+    count: String(input.items.length),
+    last: String(input.items.length - 1),
   });
 
   try {

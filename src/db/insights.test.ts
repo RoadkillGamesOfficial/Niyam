@@ -270,6 +270,73 @@ describe("peak scheduling", () => {
       assert.ok(listPlan(db, day.id).every((item) => item.planned_start === null));
     });
   });
+
+  it("treats a peak that is partly past as available from the current time", () => {
+    const starts = assignPlannedStarts(
+      [
+        { minutes: 60, load: "heavy" },
+        { minutes: 60, load: "heavy" },
+        { minutes: 30, load: "heavy" },
+      ],
+      [
+        { startHour: 9, endHour: 12, score: 0.8, samples: 9 },
+        { startHour: 13, endHour: 14, score: 0.7, samples: 6 },
+      ],
+      10 * 60 + 30,
+    );
+    assert.deepEqual(starts, ["10:30", "11:35", "13:00"]);
+  });
+
+  it("keeps all heavy work when peaks cannot hold it", () => {
+    const starts = assignPlannedStarts(
+      Array.from({ length: 4 }, () => ({ minutes: 60, load: "heavy" as const })),
+      [
+        { startHour: 9, endHour: 10, score: 0.8, samples: 9 },
+        { startHour: 13, endHour: 14, score: 0.7, samples: 6 },
+      ],
+      9 * 60,
+    );
+    assert.deepEqual(starts, ["09:00", "13:00", "14:05", "15:10"]);
+  });
+
+  it("leaves starts sequential when the day begins after every peak", () => {
+    withTempDatabase((db) => {
+      const date = daysAgo(0);
+      for (const offset of [1, 2, 3]) {
+        const past = daysAgo(offset);
+        const pastDay = makeDay(db, past, "maintenance", []);
+        addAnsweredPulse(db, pastDay, past, "09:00", "on_track");
+      }
+
+      const day = makeDay(db, date, "maintenance", []);
+      const first = createTask(db, {
+        dayId: day,
+        title: "Heavy first",
+        estimatedMinutes: 45,
+        cognitiveLoad: "heavy",
+      });
+      const second = createTask(db, {
+        dayId: day,
+        title: "Heavy second",
+        estimatedMinutes: 30,
+        cognitiveLoad: "heavy",
+      });
+      addPlanItem(db, day, first.id);
+      addPlanItem(db, day, second.id);
+      confirmPlan(db, day, `${date} 16:00:00`);
+
+      assert.ok(getPeakWindows(db).length > 0);
+      assert.equal(schedulePlanForPeaks(db, day), true);
+      assert.deepEqual(
+        listPlan(db, day).map((item) => item.planned_start),
+        ["16:00", "16:50"],
+      );
+      assert.deepEqual(
+        listPlan(db, day).map((item) => item.title),
+        ["Heavy first", "Heavy second"],
+      );
+    });
+  });
 });
 
 describe("habit insights", () => {

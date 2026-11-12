@@ -52,6 +52,8 @@ export const COPY = {
     markOpen: "Mark open",
     taskDoneMark: "[x]",
     taskOpenMark: "[ ]",
+    completionTitle: "Task done",
+    completionBody: "One small thing finished.",
     habitTag: "Habit",
     carriedTag: "Carried over",
   },

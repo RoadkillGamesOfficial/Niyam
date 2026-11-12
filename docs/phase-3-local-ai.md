@@ -69,10 +69,12 @@ place:
 - **Shrinkage**: the Drifted panel gains "Ask for a smaller step", which asks
   the model for one step and falls back to the Phase 2 presets.
 - **Validation and fallback** (`src/ai/validate.ts` and the three generators):
-  planner replies are capped at 12 items, titles at 200 characters, minutes
-  clamped to 5–180; reframe categories are a fixed set (with the PDD prose names
-  accepted); a failed or unavailable model falls back to a local split, a plain
-  reading, or a preset step, and the UI says so.
+  planner replies are capped at 12 items and titles at 200 characters; model
+  minutes outside 5–180 are rejected rather than written, and shrink minutes
+  outside 1–15 are rejected; review edits are still clamped. Reframe categories
+  are a fixed set (with the PDD prose names accepted); a failed or unavailable
+  model falls back to a local split, a plain reading, or a preset step, and the
+  UI says so.
 - **Safety** (`src/ai/safety.ts`): explicit distress phrases short-circuit the
   model and return the supportive response; the prompt also asks for a
   `distress` category, which is replaced by the same fixed response. A safety
@@ -121,7 +123,7 @@ was run.
 | Brain dumps stored locally | migration `003_phase3.sql`; `004_phase3_reframe_task.sql` for the source task | /reframe history |
 | Local AI on/off (PDD §8.6) | `settings.ai_enabled`, `updateAiSettings`, guards in every AI action, hidden AI controls | /settings → Local AI |
 | No outbound calls | loopback check, no other runtime fetch, Next telemetry disabled | static review |
-| Malformed output never saved | validation runs before `createProposal` / `createBrainDump`; review edits are clamped | every AI path |
+| Malformed output never saved | validation runs before `createProposal` / `createBrainDump`; a real loopback stub covers invalid, truncated, wrong-schema and absurd replies; review edits are clamped | every AI path |
 | Distress test inputs trigger safety | `detectDistress` unit tests include explicit phrases and ordinary stress | /reframe |
 
 Open: the prompt voice has not had a separate voice-writer pass. The benchmark,

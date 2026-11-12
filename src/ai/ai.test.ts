@@ -49,9 +49,15 @@ describe("planner validation", () => {
     assert.equal(parsePlannerOutput({ tasks }).length, CONFIG.ai.maxPlanItems);
   });
 
-  it("clamps wild durations instead of writing them", () => {
-    assert.equal(parsePlannerOutput({ tasks: [{ title: "Long", minutes: 999 }] })[0].minutes, 180);
-    assert.equal(parsePlannerOutput({ tasks: [{ title: "Odd", minutes: -4 }] })[0].minutes, 5);
+  it("rejects wild durations instead of accepting them", () => {
+    assert.throws(
+      () => parsePlannerOutput({ tasks: [{ title: "Long", minutes: 999 }] }),
+      AiFormatError,
+    );
+    assert.throws(
+      () => parsePlannerOutput({ tasks: [{ title: "Odd", minutes: 0 }] }),
+      AiFormatError,
+    );
   });
 });
 
@@ -115,12 +121,20 @@ describe("reframe validation and safety", () => {
 });
 
 describe("shrink validation", () => {
-  it("accepts a step and clamps its minutes", () => {
-    assert.deepEqual(parseShrinkOutput({ title: "Open the file", minutes: 30 }), {
+  it("accepts an in-range step and rejects absurd minutes", () => {
+    assert.deepEqual(parseShrinkOutput({ title: "Open the file", minutes: 10 }), {
       title: "Open the file",
-      minutes: 15,
+      minutes: 10,
     });
     assert.throws(() => parseShrinkOutput({ title: "  " }), AiFormatError);
+    assert.throws(
+      () => parseShrinkOutput({ title: "Open the file", minutes: 999 }),
+      AiFormatError,
+    );
+    assert.throws(
+      () => parseShrinkOutput({ title: "Open the file", minutes: 0 }),
+      AiFormatError,
+    );
   });
 
   it("falls back to a preset step when the model fails", async () => {
@@ -237,11 +251,22 @@ describe("replanning", () => {
       { title: "Email Sam", minutes: 15, load: "light" },
       { title: "Write the report", minutes: 45, load: "heavy" },
     ];
+    let system = "";
     const ok = await generateReplan(
       { items, profile: "maintenance", time: "10:00" },
-      { model: "test", chat: async () => ({ order: [1, 0] }) },
+      {
+        model: "test",
+        chat: async (request) => {
+          system = request.system;
+          return { order: [1, 0] };
+        },
+      },
     );
     assert.deepEqual(ok, { order: [1, 0], fallback: false });
+    // The shape example has three indices; the prompt must override it with the
+    // actual two-item range or a small model copies the example and falls back.
+    assert.match(system, /exactly 2 tasks/);
+    assert.match(system, /from 0 to 1/);
 
     const failed = await generateReplan(
       { items, profile: "maintenance", time: "10:00" },

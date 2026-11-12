@@ -579,3 +579,70 @@ have failed. A server probe is not a model probe.
 
 What it rules out: reporting readiness from server health alone; a missing or
 misspelled model now shows the existing “did not answer” state.
+
+## 2026-11-12 — Follow-up hardening: bad values, exact re-plans and completion
+
+### An out-of-range model value is malformed, not something to clamp
+
+Decision: `parsePlannerOutput` rejects planner minutes outside 5–180 and
+`parseShrinkOutput` rejects shrink minutes outside 1–15. A reply containing one
+is treated like any other malformed reply: the generator falls back and the
+fallback marking is stored where the path has one. Review edits are still
+clamped by `acceptProposal`, because those values come from the user.
+
+Why: a valid-shaped reply with `0` or `999` minutes is not trustworthy just
+because it parses. The stub run showed the old clamp would have stored a
+180-minute task with `fallback = 0`; rejecting the reply keeps the documented
+fallback promise. The previous unit test that asserted clamping was changed to
+assert rejection.
+
+What it rules out: treating any finite number as usable model output, and
+silently turning an absurd estimate into a plausible-looking task.
+
+### Re-plan prompts state the exact index count
+
+Decision: `prompts/replan.md` now receives `count` and `last` and says that the
+shape example has three indices only as an example. `generateReplan` fills both
+from the actual open items. The test asserts a two-item prompt says “exactly 2
+tasks” and “from 0 to 1”.
+
+Why: during the live normal-path run, qwen returned `{"order":[1,0,2]}` for two
+tasks. The parser was right to reject the invented index, but the prompt's
+shape example showed three indices and never named the count. Being strict in
+validation without giving the model the right bound caused a needless fallback.
+
+What it rules out: copying the example order length instead of deriving it from
+the actual remaining work.
+
+### Completion notices are once per task and permission-gated
+
+Decision: a task's first completion redirects with `?completed=<id>`.
+`CompletionWatcher` creates one browser notification only when permission is
+already `granted`, and `completionNotice` rejects any task already in its set.
+A per-task `sessionStorage` key keeps reloading that URL quiet. Reopening and
+re-completing does not carry the query again because `hasTaskCompletionEvent`
+is checked before the redirect. The watcher never asks for permission itself.
+
+Why: the game loop rewards finishing a thing, but a second notice for the same
+finish would be noise, and reopening a task must not replay the reward feel.
+Using the existing XP completion event as the server-side once check makes the
+notification and the ledger agree.
+
+What it rules out: completion notices on reopen/re-complete, notices from a
+blocked permission, and a completion prompt hijacking the check-in permission
+flow.
+
+### Past peaks are not moved into tomorrow
+
+Decision: `assignPlannedStarts` only looks for a peak that starts at or after
+the current cursor. If every peak is already past, a heavy task keeps the
+current time and the plan stays sequential; it never invents a tomorrow peak.
+Tests pin the after-peaks case, a partly-past peak and an all-heavy plan that
+exceeds peak capacity.
+
+Why: `planned_start` is a clock time for today, and the plan is not a multi-day
+scheduler. Dropping or reordering work to force a peak would be worse; all four
+heavy tasks are retained. The comment now matches this behavior.
+
+What it rules out: silently scheduling into a future day, dropping heavy tasks
+when peaks are full, or treating a past peak as usable.
