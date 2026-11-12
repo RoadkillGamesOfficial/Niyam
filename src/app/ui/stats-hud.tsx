@@ -29,7 +29,9 @@ export function StatsHud({
         <div className="gauge-heading">
           <StarIcon className="gauge-icon" />
           <span className="gauge-label">{COPY.progress.levelLabel}</span>
-          <span className="gauge-level-number">Lv {player.level.level}</span>
+          <span className="gauge-level-number">
+            {COPY.progress.levelShort} {player.level.level}
+          </span>
         </div>
         <p className="gauge-title">{player.level.name}</p>
         <div
@@ -42,7 +44,7 @@ export function StatsHud({
           ))}
         </div>
         <p className="gauge-caption">
-          {player.totalXp} {COPY.progress.xpLabel} · {todayXp} today
+          {player.totalXp} {COPY.progress.xpLabel} · {COPY.progress.todayXp(todayXp)}
         </p>
       </div>
 

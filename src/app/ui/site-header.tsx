@@ -53,7 +53,7 @@ export function SiteHeader({
           <p className="brand-tagline">{COPY.home.lede}</p>
         </div>
 
-        <nav className="inventory-tabs" aria-label="Sections">
+        <nav className="inventory-tabs" aria-label={COPY.nav.sectionsLabel}>
           {TABS.map(({ section, href, label, Icon }) => (
             <Link
               className={`inventory-tab${active === section ? " is-active" : ""}`}
@@ -71,7 +71,7 @@ export function SiteHeader({
         <div className="day-plaque">
           <SunIcon className="day-sun" />
           <span className="day-date">
-            {COPY.home.dayLabel} · {date}
+            {COPY.home.dayLabel} {COPY.home.daySeparator} {date}
           </span>
           {status ? (
             <span className={`status status-${statusState}`}>

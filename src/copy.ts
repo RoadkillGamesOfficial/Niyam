@@ -13,6 +13,7 @@ export const COPY = {
     settings: "Settings",
     insights: "Insights",
     homeHint: "Back to today",
+    sectionsLabel: "Sections",
   },
   home: {
     title: PRODUCT_NAME,
@@ -69,7 +70,9 @@ export const COPY = {
   progress: {
     hudLabel: "Progress",
     levelLabel: "Level",
+    levelShort: "Lv",
     xpLabel: "XP",
+    todayXp: (xp: number) => `${xp} today`,
     comboLabel: "Combo",
     integrityLabel: "Integrity",
     toNext: "to next level",

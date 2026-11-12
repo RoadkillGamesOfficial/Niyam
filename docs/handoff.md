@@ -20,8 +20,8 @@ there. At this handoff, `npm test` is 156/156 and `npm run build` passes; the
 70-test run above is the Phase 1 baseline.
 
 Commits on this branch, oldest first. `origin` is configured at
-`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is 19 commits ahead
-of `origin/main` after the redesign and notes commits. Nothing has been pushed.
+`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is ahead of
+`origin/main` after the redesign and notes commits. Nothing has been pushed.
 
 | Commit | What |
 |--------|------|
