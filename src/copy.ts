@@ -67,6 +67,7 @@ export const COPY = {
     emptyCarry: "Nothing waiting.",
   },
   progress: {
+    hudLabel: "Progress",
     levelLabel: "Level",
     xpLabel: "XP",
     comboLabel: "Combo",
@@ -344,6 +345,13 @@ export const COPY = {
     peakHint:
       "When this is off, planning keeps its usual order and no suggested times are added.",
     emptyHabits: "No habits yet. Add one you want to keep.",
+  },
+  rewards: {
+    xp: (xp: number) => `+${xp} XP`,
+    levelUp: "Level up!",
+    levelUpBody: (name: string) => `You reached ${name}.`,
+    dismiss: "Nice",
+    freshStart: "Fresh start",
   },
   dayClose: {
     close: "Close the day",

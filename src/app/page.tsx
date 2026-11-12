@@ -13,9 +13,14 @@ import { getSettings } from "@/db/settings";
 import { listOpenTasksBefore } from "@/db/tasks";
 import { xpForDay } from "@/db/xp";
 import { slotKey } from "@/game/pulses";
+import { taskXp } from "@/game/rules";
 import { localDateString } from "@/time";
 import { CheckInWatcher } from "./check-in";
 import { CompletionWatcher } from "./completion-watcher";
+import { RewardWatcher } from "./reward-watcher";
+import { SiteHeader } from "./ui/site-header";
+import { CropIcon, FlowerIcon, Mascot, QuestIcon, SproutIcon } from "./ui/sprites";
+import { StatsHud } from "./ui/stats-hud";
 import {
   acceptPlanProposal,
   aiShrinkTask,
@@ -120,206 +125,190 @@ export default async function Home({
   const completedTaskId = Number(params.completed);
   const completedId =
     Number.isInteger(completedTaskId) && completedTaskId > 0 ? completedTaskId : null;
+  const completedItem =
+    completedId === null ? undefined : plan.find((item) => item.task_id === completedId);
+  const completedRewardXp = completedItem ? taskXp(completedItem.cognitive_load) : 0;
+  const doneHabitIds = new Set<number>();
+  for (const item of plan) {
+    if (item.status === "done" && item.habit_id) {
+      doneHabitIds.add(item.habit_id);
+    }
+  }
+  const planStatus = day.plan_status === "draft"
+    ? COPY.home.draftBadge
+    : day.plan_status === "active"
+      ? COPY.home.runningBadge
+      : COPY.home.closedBadge;
+  const planStatusState: "running" | "paused" | "closed" =
+    day.plan_status === "active" ? "running" : day.plan_status === "draft" ? "paused" : "closed";
 
   return (
     <main className="shell">
-      <header className="masthead">
-        <div className="masthead-top">
-          <h1 className="wordmark">{COPY.home.title}</h1>
-          <span className="header-links">
-            <Link className="link" href="/reframe">
-              {COPY.reframe.nav}
-            </Link>
-            <Link className="link" href="/insights">
-              {COPY.nav.insights}
-            </Link>
-            <Link className="link" href="/settings">
-              {COPY.nav.settings}
-            </Link>
-          </span>
-        </div>
-        <p className="lede">{COPY.home.lede}</p>
-        <p className="hint">
-          {COPY.home.dayLabel} {COPY.home.daySeparator} {date}
-          <span className="badge">
-            {day.plan_status === "draft"
-              ? COPY.home.draftBadge
-              : day.plan_status === "active"
-                ? COPY.home.runningBadge
-                : COPY.home.closedBadge}
-          </span>
-        </p>
-      </header>
+      <SiteHeader
+        active="today"
+        title={COPY.nav.home}
+        date={date}
+        status={planStatus}
+        statusState={planStatusState}
+      />
 
       <CompletionWatcher taskId={completedId} />
+      <RewardWatcher
+        completedTaskId={completedId}
+        rewardXp={completedRewardXp}
+        level={player.level.level}
+        levelName={player.level.name}
+        multiplier={player.multiplier}
+      />
 
-      {params.added ? <p className="notice">{COPY.ai.added}</p> : null}
-      {params.shrunk ? <p className="notice">{COPY.ai.shrinkNotice}</p> : null}
-      {params.shapeError ? (
-        <p className="notice notice-warn">{COPY.ai.shapeError}</p>
-      ) : null}
-      {params.aiOff ? <p className="notice notice-warn">{COPY.ai.off}</p> : null}
-      {params.replanned ? <p className="notice">{COPY.ai.replanned}</p> : null}
-      {params.replanFallback ? (
-        <p className="notice notice-warn">{COPY.ai.replanFallback}</p>
-      ) : null}
+      <div className="notice-stack">
+        {params.added ? <p className="notice">{COPY.ai.added}</p> : null}
+        {params.shrunk ? <p className="notice">{COPY.ai.shrinkNotice}</p> : null}
+        {params.shapeError ? (
+          <p className="notice notice-warn">{COPY.ai.shapeError}</p>
+        ) : null}
+        {params.aiOff ? <p className="notice notice-warn">{COPY.ai.off}</p> : null}
+        {params.replanned ? <p className="notice">{COPY.ai.replanned}</p> : null}
+        {params.replanFallback ? (
+          <p className="notice notice-warn">{COPY.ai.replanFallback}</p>
+        ) : null}
+      </div>
 
-      <section className="stats" aria-label={COPY.progress.levelLabel}>
-        <div className="stat">
-          <p className="label">{COPY.progress.levelLabel}</p>
-          <p className="stat-value">{player.level.name}</p>
-          <p className="hint small">
-            {player.totalXp} {COPY.progress.xpLabel} · {todayXp} today
-          </p>
-          <div className="bar">
-            <div
-              className="bar-fill"
-              style={{ width: `${Math.round(player.progress * 100)}%` }}
-            />
-          </div>
-        </div>
-        <div className="stat">
-          <p className="label">{COPY.progress.comboLabel}</p>
-          <p className="stat-value">×{player.multiplier}</p>
-          <p className="hint small">{COPY.checkin.missedHelper}</p>
-        </div>
-        <div className="stat">
-          <p className="label">{COPY.progress.integrityLabel}</p>
-          <p className="stat-value">{Math.round(player.integrity * 100)}%</p>
-          <div className="bar">
-            <div
-              className="bar-fill bar-integrity"
-              style={{ width: `${Math.round(player.integrity * 100)}%` }}
-            />
-          </div>
-          <p className="hint small">{COPY.progress.integrityHint}</p>
-        </div>
-      </section>
+      <StatsHud player={player} todayXp={todayXp} celebrate={completedId !== null} />
 
-      {day.plan_status === "closed" ? (
-        <section className="panel" aria-labelledby="closed-heading">
-          <h2 className="label" id="closed-heading">
-            {COPY.home.closedHeading}
-          </h2>
-          <p className="lede">{COPY.home.closedLede}</p>
-          {summary ? (
-            <dl className="values">
-              <dt>{COPY.dayClose.xp}</dt>
-              <dd>{summary.xp}</dd>
-              <dt>{COPY.dayClose.answered}</dt>
-              <dd>{summary.answered}</dd>
-              <dt>{COPY.dayClose.missed}</dt>
-              <dd>{summary.missed}</dd>
-              <dt>{COPY.dayClose.longest}</dt>
-              <dd>{summary.longestCombo}</dd>
-              <dt>{COPY.dayClose.tasks}</dt>
-              <dd>
-                {summary.tasksDone}/{summary.tasksTotal}
-              </dd>
-              <dt>{COPY.dayClose.carry}</dt>
-              <dd>{summary.carryOver}</dd>
-            </dl>
-          ) : null}
-        </section>
-      ) : null}
-
-      {day.plan_status === "active" ? (
-        <>
-          <section className="panel" aria-labelledby="current-heading">
-            <h2 className="label" id="current-heading">
-              {COPY.home.currentLabel}
+      <div className={`stage${day.plan_status === "active" ? " stage-running" : ""}`}>
+        {day.plan_status === "closed" ? (
+          <section className="panel closed-panel" aria-labelledby="closed-heading">
+            <h2 className="label" id="closed-heading">
+              {COPY.home.closedHeading}
             </h2>
-            {current ? (
-              <p className="current">{current.title}</p>
-            ) : (
-              <p className="hint">{COPY.home.noCurrent}</p>
-            )}
-            <p className="hint small">
-              {progress.done}/{progress.total} {COPY.dayClose.tasks.toLowerCase()}
-            </p>
+            <p className="lede">{COPY.home.closedLede}</p>
+            {summary ? (
+              <dl className="values">
+                <dt>{COPY.dayClose.xp}</dt>
+                <dd>{summary.xp}</dd>
+                <dt>{COPY.dayClose.answered}</dt>
+                <dd>{summary.answered}</dd>
+                <dt>{COPY.dayClose.missed}</dt>
+                <dd>{summary.missed}</dd>
+                <dt>{COPY.dayClose.longest}</dt>
+                <dd>{summary.longestCombo}</dd>
+                <dt>{COPY.dayClose.tasks}</dt>
+                <dd>
+                  {summary.tasksDone}/{summary.tasksTotal}
+                </dd>
+                <dt>{COPY.dayClose.carry}</dt>
+                <dd>{summary.carryOver}</dd>
+              </dl>
+            ) : null}
           </section>
+        ) : null}
 
-          <section className="panel" aria-labelledby="checkin-heading">
+        {day.plan_status === "active" ? (
+          <section className="panel dialogue-panel stage-checkin" aria-labelledby="checkin-heading">
             <h2 className="label" id="checkin-heading">
               {COPY.checkin.heading}
             </h2>
-            {pending ? (
-              <form className="checkin" action={answerCheckin}>
-                <input type="hidden" name="pulseId" value={pending.id} />
-                <p className="checkin-question">{COPY.checkin.question}</p>
-                <p className="hint small">{current ? current.title : COPY.home.noCurrent}</p>
-                {pending.quiet === 1 ? (
-                  <p className="hint small">{COPY.checkin.quietLede}</p>
-                ) : null}
-                <label className="field">
-                  <span>{COPY.checkin.noteLabel}</span>
-                  <input
-                    type="text"
-                    name="note"
-                    maxLength={280}
-                    placeholder={COPY.checkin.notePlaceholder}
-                  />
-                </label>
-                <div className="answer-row">
-                  <button className="button" type="submit" name="response" value="on_track">
-                    {COPY.checkin.onTrack}
-                  </button>
-                  <button
-                    className="button button-alt"
-                    type="submit"
-                    name="response"
-                    value="pivot"
-                  >
-                    {COPY.checkin.pivot}
-                  </button>
-                  <button
-                    className="button button-quiet"
-                    type="submit"
-                    name="response"
-                    value="drifted"
-                  >
-                    {COPY.checkin.drifted}
-                  </button>
-                </div>
-                <p className="hint small">{COPY.checkin.quickHint}</p>
-                <p className="hint small">{COPY.checkin.missedHelper}</p>
-              </form>
-            ) : (
-              <p className="hint">
-                {paused ? COPY.checkin.paused : COPY.checkin.missedHelper}
-              </p>
-            )}
+            <div className={`dialogue${pending ? " dialogue--due" : ""}`}>
+              <div className="mascot-wrap">
+                <Mascot className="mascot" />
+                <span className="mascot-alert" aria-hidden="true">
+                  !
+                </span>
+              </div>
+              <div className="dialogue-body">
+                <p className="dialogue-speaker">{COPY.checkin.heading}</p>
+                {pending ? (
+                  <form action={answerCheckin}>
+                    <input type="hidden" name="pulseId" value={pending.id} />
+                    <p className="dialogue-text checkin-question">{COPY.checkin.question}</p>
+                    <p className="dialogue-task">
+                      {current ? current.title : COPY.home.noCurrent}
+                    </p>
+                    {pending.quiet === 1 ? (
+                      <p className="hint small">{COPY.checkin.quietLede}</p>
+                    ) : null}
+                    <label className="field">
+                      <span>{COPY.checkin.noteLabel}</span>
+                      <input
+                        type="text"
+                        name="note"
+                        maxLength={280}
+                        placeholder={COPY.checkin.notePlaceholder}
+                      />
+                    </label>
+                    <div className="dialogue-options">
+                      <button
+                        className="button dialogue-option"
+                        type="submit"
+                        name="response"
+                        value="on_track"
+                      >
+                        {COPY.checkin.onTrack}
+                      </button>
+                      <button
+                        className="button button-alt dialogue-option"
+                        type="submit"
+                        name="response"
+                        value="pivot"
+                      >
+                        {COPY.checkin.pivot}
+                      </button>
+                      <button
+                        className="button button-quiet dialogue-option"
+                        type="submit"
+                        name="response"
+                        value="drifted"
+                      >
+                        {COPY.checkin.drifted}
+                      </button>
+                    </div>
+                    <p className="hint small">{COPY.checkin.quickHint}</p>
+                    <p className="hint small">{COPY.checkin.missedHelper}</p>
+                  </form>
+                ) : (
+                  <>
+                    <p className="dialogue-text">
+                      {paused ? COPY.checkin.paused : COPY.checkin.missedHelper}
+                    </p>
+                    <p className="dialogue-task">
+                      {current ? current.title : COPY.home.noCurrent}
+                    </p>
+                  </>
+                )}
 
-            <div className="inline-form" style={{ marginTop: 16 }}>
-              {paused ? (
-                <form action={resumeCheckins}>
-                  <button className="button" type="submit">
-                    {COPY.checkin.resume}
-                  </button>
-                </form>
-              ) : (
-                <form action={pauseCheckins}>
-                  <button className="button button-quiet" type="submit">
-                    {COPY.checkin.pause}
-                  </button>
-                </form>
-              )}
-              <form action={replanWithAi}>
-                <PendingButton
-                  className="button button-quiet"
-                  label={COPY.plan.replan}
-                  busy={COPY.ai.busy}
-                />
-              </form>
-              <form action={closeDayAction}>
-                <button className="button button-quiet" type="submit">
-                  {COPY.dayClose.close}
-                </button>
-              </form>
+                <div className="dialogue-actions">
+                  {paused ? (
+                    <form action={resumeCheckins}>
+                      <button className="button button-quiet dialogue-option" type="submit">
+                        {COPY.checkin.resume}
+                      </button>
+                    </form>
+                  ) : (
+                    <form action={pauseCheckins}>
+                      <button className="button button-quiet dialogue-option" type="submit">
+                        {COPY.checkin.pause}
+                      </button>
+                    </form>
+                  )}
+                  <form action={replanWithAi}>
+                    <PendingButton
+                      className="button button-quiet dialogue-option"
+                      label={COPY.plan.replan}
+                      busy={COPY.ai.busy}
+                    />
+                  </form>
+                  <form action={closeDayAction}>
+                    <button className="button button-quiet dialogue-option" type="submit">
+                      {COPY.dayClose.close}
+                    </button>
+                  </form>
+                </div>
+              </div>
             </div>
 
             {params.shrink && current ? (
-              <div className="checkin">
+              <div className="shrink-box">
                 <p className="checkin-question">{COPY.checkin.driftedHeading}</p>
                 <p className="hint small">{COPY.checkin.driftedLede}</p>
                 <p className="hint small">
@@ -369,10 +358,50 @@ export default async function Home({
               quietEnd={settings.quiet_end}
             />
           </section>
-        </>
-      ) : null}
+        ) : null}
 
-      <section className="panel" aria-labelledby="plan-heading">
+        <div className="stage-main">
+          {day.plan_status === "active" ? (
+            <section className="panel quest-panel" aria-labelledby="current-heading">
+              <h2 className="label" id="current-heading">
+                <QuestIcon /> {COPY.home.currentLabel}
+              </h2>
+              <div className="quest-body">
+                {current ? (
+                  <p className="quest-task">{current.title}</p>
+                ) : (
+                  <p className="quest-empty">{COPY.home.noCurrent}</p>
+                )}
+                <div
+                  className="quest-slots"
+                  role="img"
+                  aria-label={`${progress.done}/${progress.total} ${COPY.dayClose.tasks.toLowerCase()}`}
+                >
+                  {Array.from({ length: progress.total }, (_, index) => {
+                    const done = index < progress.done;
+                    return (
+                      <span className={`quest-slot${done ? " is-done" : ""}`} key={index}>
+                        {done ? <SproutIcon className="quest-slot-sprout" /> : null}
+                      </span>
+                    );
+                  })}
+                </div>
+                <p className="quest-progress">
+                  {progress.done}/{progress.total} {COPY.dayClose.tasks.toLowerCase()}
+                </p>
+                {current ? (
+                  <form action={toggleTask}>
+                    <input type="hidden" name="taskId" value={current.task_id} />
+                    <button className="button quest-complete" type="submit">
+                      {COPY.task.markDone}
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
+      <section className="panel plan-panel" aria-labelledby="plan-heading">
         <h2 className="label" id="plan-heading">
           {COPY.home.planHeading}
         </h2>
@@ -507,11 +536,16 @@ export default async function Home({
           <ul className="task-list">
             {plan.map((item, index) => {
               const done = item.status === "done";
+              const isCurrent = current?.task_id === item.task_id;
+              const justDone = item.task_id === completedId;
               const taskOccurrence = item.habit_id
                 ? occurrenceForTask(db, item.task_id)
                 : undefined;
               return (
-                <li className={done ? "task task-done" : "task"} key={item.id}>
+                <li
+                  className={`task${done ? " task-done" : ""}${isCurrent ? " task-current" : ""}${justDone ? " task-just-done" : ""}`}
+                  key={item.id}
+                >
                   <form action={toggleTask}>
                     <input type="hidden" name="taskId" value={item.task_id} />
                     <button
@@ -523,7 +557,10 @@ export default async function Home({
                       {done ? COPY.task.taskDoneMark : COPY.task.taskOpenMark}
                     </button>
                   </form>
-                  <span className="task-title">{item.title}</span>
+                  <span className="task-title-wrap">
+                    {done ? <SproutIcon className="task-sprout" /> : null}
+                    <span className="task-title">{item.title}</span>
+                  </span>
                   <span className="task-meta">
                     {item.planned_start ? `${item.planned_start} · ` : ""}
                     {COPY.task.loads[item.cognitive_load]}
@@ -613,9 +650,11 @@ export default async function Home({
         ) : null}
       </section>
 
-      <section className="panel" aria-labelledby="habits-heading">
+      </div>
+
+      <section className="panel stage-habits habits-panel" aria-labelledby="habits-heading">
         <h2 className="label" id="habits-heading">
-          {COPY.habits.heading}
+          <FlowerIcon /> {COPY.habits.heading}
         </h2>
 
         {params.habitError ? (
@@ -625,17 +664,33 @@ export default async function Home({
         {habits.length === 0 ? (
           <p className="empty">{COPY.habits.empty}</p>
         ) : (
-          <ul className="habit-list">
+          <ul className="habit-list garden">
             {habits.map((habit) => {
               const streak = streakFor(db, habit.id);
+              const stage: 0 | 1 | 2 | 3 | 4 =
+                streak <= 0 ? 0 : streak === 1 ? 1 : streak <= 3 ? 2 : streak <= 6 ? 3 : 4;
+              const doneToday = doneHabitIds.has(habit.id);
               return (
-                <li className="habit" key={habit.id}>
-                  <span className="task-title">{habit.name}</span>
-                  <span className="task-meta">
-                    {COPY.habits.frequencies[habit.frequency]} · {streak} {COPY.habits.streak}
-                    {habit.status === "paused" ? ` · ${COPY.habits.pausedTag}` : ""}
-                  </span>
-                  <span className="task-actions">
+                <li
+                  className={`habit${habit.status === "paused" ? " plot-paused" : ""}`}
+                  key={habit.id}
+                >
+                  <div className="plot-crop">
+                    <CropIcon stage={stage} className="crop-sprite" />
+                    {doneToday ? (
+                      <span className="plot-sparkle" aria-hidden="true">
+                        ✦
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="plot-info">
+                    <span className="task-title">{habit.name}</span>
+                    <span className="task-meta">
+                      {COPY.habits.frequencies[habit.frequency]} · {streak} {COPY.habits.streak}
+                      {habit.status === "paused" ? ` · ${COPY.habits.pausedTag}` : ""}
+                    </span>
+                  </div>
+                  <span className="task-actions plot-actions">
                     <form action={toggleHabit}>
                       <input type="hidden" name="habitId" value={habit.id} />
                       <input
@@ -660,7 +715,7 @@ export default async function Home({
           </ul>
         )}
 
-        <form className="settings-form" action={addHabit} style={{ marginTop: 16 }}>
+        <form className="settings-form habit-form" action={addHabit}>
           <p className="label">{COPY.habits.addLabel}</p>
           <label className="field">
             <span>{COPY.habits.name}</span>
@@ -704,8 +759,9 @@ export default async function Home({
           </button>
         </form>
       </section>
+      </div>
 
-      <section className="panel" aria-labelledby="heat-heading">
+      <section className="panel heat-panel" aria-labelledby="heat-heading">
         <h2 className="label" id="heat-heading">
           {COPY.progress.integrityLabel}
         </h2>

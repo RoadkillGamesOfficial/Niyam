@@ -8,6 +8,7 @@ import { getSettings } from "@/db/settings";
 import { getTask } from "@/db/tasks";
 import { localDateString } from "@/time";
 import { PendingButton } from "../pending-button";
+import { SiteHeader } from "../ui/site-header";
 import {
   acceptMicroAction,
   deleteReframe,
@@ -58,24 +59,13 @@ export default async function ReframePage({
 
   return (
     <main className="shell">
-      <header className="masthead">
-        <div className="masthead-top">
-          <h1 className="wordmark">{COPY.reframe.heading}</h1>
-          <span className="header-links">
-            <Link className="link" href="/">
-              {COPY.nav.home}
-            </Link>
-            <Link className="link" href="/insights">
-              {COPY.nav.insights}
-            </Link>
-            <Link className="link" href="/settings">
-              {COPY.nav.settings}
-            </Link>
-          </span>
-        </div>
-        <p className="lede">{COPY.reframe.lede}</p>
-        <p className="hint">{COPY.reframe.shortcutHint}</p>
-      </header>
+      <SiteHeader
+        active="reframe"
+        title={COPY.reframe.heading}
+        lede={COPY.reframe.lede}
+        hint={COPY.reframe.shortcutHint}
+        date={localDateString()}
+      />
 
       {params.deleted ? <p className="notice">{COPY.reframe.deleted}</p> : null}
       {params.added ? <p className="notice">{COPY.reframe.accepted}</p> : null}

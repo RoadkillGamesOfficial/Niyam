@@ -1,12 +1,13 @@
-import Link from "next/link";
 import { CONFIG } from "@/config";
 import { COPY } from "@/copy";
 import { getBackupStatus } from "@/db/backup";
 import { databasePath } from "@/db/database";
 import { getDatabase } from "@/db/index";
 import { getSettings } from "@/db/settings";
+import { localDateString } from "@/time";
 import { checkLocalModel, saveAiSettings } from "../ai-actions";
 import { backupNow, saveInsightSettings, saveSettings } from "../actions";
+import { SiteHeader } from "../ui/site-header";
 
 // Settings are read and written through the same data-access functions the tests
 // use. Gamification numbers are shown, not edited: they live in src/config.ts.
@@ -32,23 +33,12 @@ export default async function SettingsPage({
 
   return (
     <main className="shell">
-      <header className="masthead">
-        <div className="masthead-top">
-          <h1 className="wordmark">{COPY.settings.heading}</h1>
-          <span className="header-links">
-            <Link className="link" href="/">
-              {COPY.nav.home}
-            </Link>
-            <Link className="link" href="/reframe">
-              {COPY.reframe.nav}
-            </Link>
-            <Link className="link" href="/insights">
-              {COPY.nav.insights}
-            </Link>
-          </span>
-        </div>
-        <p className="lede">{COPY.settings.intervalHint}</p>
-      </header>
+      <SiteHeader
+        active="settings"
+        title={COPY.settings.heading}
+        lede={COPY.settings.intervalHint}
+        date={localDateString()}
+      />
 
       {params.saved ? <p className="notice">{COPY.settings.saved}</p> : null}
       {params.error ? <p className="notice notice-warn">{COPY.settings.error}</p> : null}

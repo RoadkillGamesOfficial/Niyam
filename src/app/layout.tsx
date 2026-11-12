@@ -14,6 +14,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <div className="world" aria-hidden="true">
+          <span className="cloud cloud-a" />
+          <span className="cloud cloud-b" />
+          <span className="cloud cloud-c" />
+          <span className="grass-strip" />
+        </div>
         <ReframeShortcut />
         {children}
       </body>

@@ -6,6 +6,7 @@ import { COPY } from "@/copy";
 import { isQuiet } from "@/game/pulses";
 import { checkinShortcutFromEvent, type ShortcutTarget } from "@/game/shortcuts";
 import { answerCheckin } from "./actions";
+import { ClockIcon, Mascot } from "./ui/sprites";
 
 // Browser side of the check-in. The server owns the schedule; this makes a due
 // prompt noticeable while another window has focus (PULSE-1), at the level the
@@ -206,6 +207,7 @@ export function CheckInWatcher({
         aria-label={COPY.checkin.overlayHeading}
       >
         <div className="overlay-card">
+          <Mascot className="overlay-mascot" />
           <p className="label">{COPY.checkin.overlayHeading}</p>
           <h2 className="checkin-question">{COPY.checkin.question}</h2>
           <form action={answerCheckin}>
@@ -260,9 +262,25 @@ export function CheckInWatcher({
   }
 
   const minutes = Math.max(1, Math.ceil(remaining / 60_000));
+  const urgent = remaining <= 60_000;
+  const ratio = Math.min(1, Math.max(0, remaining / (intervalMinutes * 60_000)));
   return (
-    <p className="hint small">
-      {COPY.checkin.nextIn} · {minutes} min · {COPY.checkin.every} {intervalMinutes} min
-    </p>
+    <div
+      className={`timer-widget${urgent ? " timer--urgent" : ""}`}
+      role="timer"
+      aria-label={`${COPY.checkin.nextIn}: ${minutes} min`}
+    >
+      <ClockIcon className="timer-icon" />
+      <div className="timer-copy">
+        <span className="timer-label">{COPY.checkin.nextIn}</span>
+        <span className="timer-value">{minutes} min</span>
+        <span className="timer-every">
+          {COPY.checkin.every} {intervalMinutes} min
+        </span>
+      </div>
+      <div className="timer-track" aria-hidden="true">
+        <span className="timer-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
+      </div>
+    </div>
   );
 }

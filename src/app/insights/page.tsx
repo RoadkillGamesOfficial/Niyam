@@ -15,6 +15,7 @@ import {
 } from "@/db/insights";
 import { getSettings } from "@/db/settings";
 import { localDateString } from "@/time";
+import { SiteHeader } from "../ui/site-header";
 
 // Like the dashboard, this page reads SQLite per request. Insight views are
 // derived on demand so they always describe the same history the rest of the
@@ -117,23 +118,12 @@ export default async function InsightsPage() {
 
   return (
     <main className="shell insights-shell">
-      <header className="masthead">
-        <div className="masthead-top">
-          <h1 className="wordmark">{COPY.insights.heading}</h1>
-          <span className="header-links">
-            <Link className="link" href="/">
-              {COPY.nav.home}
-            </Link>
-            <Link className="link" href="/reframe">
-              {COPY.reframe.nav}
-            </Link>
-            <Link className="link" href="/settings">
-              {COPY.nav.settings}
-            </Link>
-          </span>
-        </div>
-        <p className="lede">{COPY.insights.lede}</p>
-      </header>
+      <SiteHeader
+        active="insights"
+        title={COPY.insights.heading}
+        lede={COPY.insights.lede}
+        date={localDateString()}
+      />
 
       <section className="panel" aria-labelledby="summary-heading">
         <h2 className="label" id="summary-heading">
