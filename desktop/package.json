@@ -2,8 +2,10 @@
   "name": "niyam-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Electron shell for Niyam. Phase 0 holds the feasibility spikes only; the window and tray arrive in phases 2-3.",
+  "description": "Electron shell for Niyam. Phase 0 held the feasibility spikes; the window arrived first, the tray and background check-in follow.",
+  "main": "main.js",
   "scripts": {
+    "start": "node prepare.mjs && electron .",
     "spike:node": "node spike/check-node.mjs",
     "spike:server": "node spike/check-server.mjs",
     "spike:electron": "node spike/check-electron.mjs"
