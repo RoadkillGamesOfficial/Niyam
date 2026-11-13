@@ -22,6 +22,24 @@ npm run dev
 Open the URL the dev server prints. Next picks a free port, so it is not always
 3000; read the banner rather than guessing.
 
+## Desktop preview (in progress)
+
+```sh
+npm run build      # the shell serves the built app
+cd desktop
+npm run start      # opens the window; add npm test for the shell tests
+```
+
+The shell starts its own server on a free loopback port, keeps it supervised for
+the life of the window (an early exit or three failed health checks restarts it
+and reloads the window), and shows a failure window with the real reason, Retry
+and Quit when it cannot come up. Permissions are granted only to notifications
+and fullscreen from the app's own origin, and a second launch raises the
+existing window instead of starting a second server.
+
+Closing the window still quits. The tray, start with Windows and the background
+check-in come in the next phases, so this is not yet an installed product.
+
 ## Where the data lives
 
 `data/discipline.db` — a single SQLite file, created on the first page load and
