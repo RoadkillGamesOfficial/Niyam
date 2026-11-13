@@ -107,8 +107,11 @@ npm run build    # production build + type check
 - The first `next build` rewrote `tsconfig.json`: `jsx: react-jsx` and
   `.next/dev/types/**/*.ts` added to `include`. `allowImportingTsExtensions`
   survived, which the tests depend on.
-- Migrations are read from `process.cwd()`, so dev, start and tests must run
-  from the project root. The npm scripts do.
+- App files are resolved from `appRoot()` and user data from `dataRoot()`
+  (`src/app-root.ts`). Both default to the project folder, so dev, start and
+  tests still run from the root; the desktop shell sets `NIYAM_APP_ROOT` and
+  `NIYAM_DATA_DIR` instead, which is what lets one build run from an installed
+  folder.
 - `node --test` prints `MODULE_TYPELESS_PACKAGE_JSON` for each test file because
   `package.json` has no `"type": "module"`. Harmless; adding `type: module` would
   silence it and is a Phase 2 candidate.
@@ -117,9 +120,11 @@ npm run build    # production build + type check
   wrapper exists because an inline `VAR=1` prefix does not work in Windows
   `cmd`. `node scripts/next.mjs telemetry status` reports "No data will be
   collected from your machine".
-- `next build` prints one Turbopack warning about `process.cwd()` in
-  `databasePath()` tracing the project. Benign for a local app; relevant only if
-  this is ever deployed.
+- `next build` still prints a Turbopack warning about `process.cwd()` in
+  `appRoot()`. That call is the deliberate fallback, and it no longer affects
+  output: `outputFileTracingExcludes` keeps `data/`, `desktop/`, `docs/` and
+  `scripts/` out of the standalone bundle, which is 24 MB instead of 1.8 GB.
+  The 1.8 GB was mostly an old `OllamaSetup.exe` sitting in `data/installers`.
 - ESLint was left out deliberately (dependency rule); add on request.
 
 ## Schema

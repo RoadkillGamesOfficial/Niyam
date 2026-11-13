@@ -28,6 +28,12 @@ Open the URL the dev server prints. Next picks a free port, so it is not always
 ignored by git. Everything you type lives only in that file. Use the snapshot
 export below rather than copying a live database file.
 
+The folder is movable. `NIYAM_APP_ROOT` is where the app's own files live
+(`migrations/`, `prompts/`) and `NIYAM_DATA_DIR` is where your data goes (the
+database, `backups/`, `exports/`). Both default to the project folder, which is
+why normal use never mentions them; the desktop shell sets them so an installed
+app keeps its data outside the program folder.
+
 Apart from an explicit brain-dump delete, the app never removes history on its
 own; deleting `data/` removes the whole local record.
 
