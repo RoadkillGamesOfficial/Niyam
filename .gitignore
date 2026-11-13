@@ -1,5 +1,10 @@
 # dependencies
 /node_modules
+/desktop/node_modules
+
+# desktop shell packaging output
+/desktop/dist
+/desktop/out
 
 # next.js
 /.next/
