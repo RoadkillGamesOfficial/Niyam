@@ -58,6 +58,24 @@ are in `docs/desktop-phase-4-background-check-in.md`.
 (launch with `NIYAM_DEBUG_TRAY=1` and `--inspect=9229`); it is how the only exit
 path is verified.
 
+### Installing
+
+```
+cd desktop
+npm run dist
+```
+
+writes `desktop/dist/Niyam Setup 0.1.0.exe`. It installs for the current user
+into `%LOCALAPPDATA%\Programs\Niyam` with no admin prompt, keeps days, tasks and
+settings in `%APPDATA%\Niyam`, starts with Windows, and uninstalls from the
+Start Menu. The installer is **unsigned**, so Windows shows a SmartScreen
+warning on first run: choose **More info → Run anyway**. There is no auto-update;
+a new version is a new installer, and upgrading leaves `%APPDATA%\Niyam` alone.
+
+Uninstalling asks whether to delete that folder: **No** is the default, and
+declining keeps history for a later install. Silent uninstall never deletes it
+unless `NIYAM_UNINSTALL_DELETE_DATA=1` is set.
+
 ## Where the data lives
 
 `data/discipline.db` — a single SQLite file, created on the first page load and

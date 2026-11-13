@@ -1,8 +1,46 @@
 # Desktop phase 5 — the installer
 
-Status: **plan, decisions settled**. The four questions were answered as
-recommended, and the answers are folded in below. No installer code is written
-yet.
+Status: **implemented and verified on this machine**. The four questions were
+answered as recommended, the installer is built from the production bundle, and
+the installed build was run, reminded, quit and uninstalled (both ways).
+
+## What the build taught us (the plan was wrong in three places)
+
+1. **`extraResources` flattens.** Mapping the bundle `to: "app"` put `server.js`
+at the app root, so the shell looked for `.next/standalone/server.js` and found
+nothing. The mapping now mirrors the repo (`app/.next/standalone`), with
+`migrations`, `prompts` and `src` beside it.
+2. **electron-builder drops `node_modules` from `extraResources`.** The first
+installed build died with `Cannot find module 'next'`. `node_modules` is now its
+own entry, from the bundle's own folder, which no exclusion pattern matches.
+3. **Electron keys `userData` on the package name.** The first run wrote to
+`%APPDATA%\niyam-desktop`, not `%APPDATA%\Niyam`; `app.setName("Niyam")` runs
+before `getPath` now, so data and the uninstaller agree.
+
+A fourth defect came from the uninstall run itself: removing the app left the
+autostart registry value pointing at a deleted exe. `customUnInstall` deletes
+`HKCU\...\Run\Niyam` first.
+
+## What was demonstrated
+
+- Silent install (`/S`) put the app in `%LOCALAPPDATA%\Programs\Niyam` with no
+elevation; the installer is unsigned and SmartScreen was not bypassed by force.
+- The installed exe logged `app root ...\resources\app` and
+`data root ...\AppData\Roaming\Niyam`, started the server, showed the window,
+created the tray and registered `login item openAtLogin=true`.
+- With the window hidden, the installed build posted `Check-in | Still on Ship the
+installer?` from the packaged roots and stopped its server after the grace.
+- A second launch exited 0, logged `second launch: showing the existing window`
+and started no second server.
+- Tray Quit logged `reminder loop stopped`, `tray removed`, `server child stopped`
+and left zero processes.
+- Silent uninstall removed the program folder and the autostart entry and **kept**
+`%APPDATA%\Niyam`; the same uninstall with `NIYAM_UNINSTALL_DELETE_DATA=1`
+removed the data too.
+
+Not verified: the NSIS wizard pages and the uninstall dialog's buttons were never
+clicked by a human. The dialog's Yes branch is the same `RMDir` the environment
+flag exercises, so what remains unchecked is the prompt's wording and layout.
 
 ## Goal
 

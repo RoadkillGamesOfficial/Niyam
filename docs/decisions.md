@@ -702,6 +702,31 @@ shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
 folder. The existing audio behaviour and level ladder are deliberately unchanged,
 and the redesign still alters no scoring or persistence rule.
 
+## 2026-11-13 — Desktop phase 5: Niyam installs per user
+
+The installer is real: `desktop/dist/Niyam Setup 0.1.0.exe` (121 MB, unsigned),
+built with electron-builder's NSIS target, per user, no admin prompt, data in
+`%APPDATA%\Niyam`, no auto-update.
+
+Three defects were found by running it rather than by reading the config:
+
+- `extraResources` **flattened** the server bundle, so the shell looked for
+  `.next\standalone\server.js` in an app root that had `server.js` at the top.
+- electron-builder **excluded `node_modules`** from `extraResources`, so even the
+  corrected layout died with `Cannot find module 'next'`. It is a separate entry
+  now, copied from the bundle's own folder.
+- Electron keys `userData` on the package name, so the first run wrote to
+  `%APPDATA%\niyam-desktop`. `app.setName("Niyam")` runs before any `getPath`, and
+  the uninstaller now deletes the autostart value too, which it had been leaving
+  behind pointing at a deleted exe.
+
+Verified on a clean silent install: packaged roots logged, server ready, window
+shown, tray created, `login item openAtLogin=true`, a seeded due check-in produced
+its toast from the packaged roots with the window hidden, a second launch only
+raised the existing window, and tray Quit left zero processes. Uninstall kept
+`%APPDATA%\Niyam` without confirmation and removed it with
+`NIYAM_UNINSTALL_DELETE_DATA=1`.
+
 ## 2026-11-13 — Desktop phase 5 is planned: a per-user installer
 
 The four installer questions were answered as recommended and are recorded in
