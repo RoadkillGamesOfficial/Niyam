@@ -6,13 +6,18 @@
 2026-11-12.**
 **v1 hardening is implemented and browser-verified 2026-11-12: snapshot export,
 bounded automatic backups, and check-in quick keys.**
-**The cozy pixel-farm visual redesign is implemented and browser-inspected
-2026-11-12. `docs/redesign.md` is the governing visual spec; the adaptation notes
-are recorded in `docs/decisions.md`.**
+**The cozy pixel-farm visual redesign is implemented, browser-verified and
+pushed 2026-11-13. `docs/redesign.md` governs the interface; adaptation notes and
+the final audit are recorded in `docs/decisions.md`.**
 The app now runs a full
 day: plan with a profile, start the day, check-ins with XP and combo, habits,
-settings, and a day close. Data lives in `data/discipline.db`. Nothing is pushed.
-Verified end to end on 2026-11-08 with the dev server on port 3000:
+settings, and a day close. Data lives in `data/discipline.db`. `main` is in sync
+with `origin/main`, including the redesign and its follow-up fixes.
+The final 2026-11-13 pass covered the four routes at 375, 768 and 1440, every
+check-in/day state, reward feedback, reduced motion, keyboard focus, real task
+completion and contrast; `npm test` is 156/156 and `npm run build` passes.
+The original end-to-end check was run on 2026-11-08 with the dev server on port
+3000:
 entered a task in the page → row in `task` → one row (not two) after a browser
 refresh → marked done → `status = 'done'` and `updated_at` changed on disk →
 killed and restarted the dev server → the task and its done state were still
@@ -20,8 +25,8 @@ there. At this handoff, `npm test` is 156/156 and `npm run build` passes; the
 70-test run above is the Phase 1 baseline.
 
 Commits on this branch, oldest first. `origin` is configured at
-`https://github.com/RoadkillGamesOfficial/Niyam.git`; `main` is ahead of
-`origin/main` after the redesign and notes commits. Nothing has been pushed.
+`https://github.com/RoadkillGamesOfficial/Niyam.git` and was pushed on
+2026-11-13; local `main` and `origin/main` share the same tip.
 
 | Commit | What |
 |--------|------|
@@ -53,10 +58,14 @@ Commits on this branch, oldest first. `origin` is configured at
 | `dfc3fed` | ai: require the configured model when checking readiness |
 | `d4a9ce3` | test: close the live acceptance gaps |
 | `e2698b0` | feat(ui): rebuild the app as a cozy pixel farm |
+| `0ea2f2f` | docs: record the pixel-farm redesign |
+| `3a8839b` | chore: keep the new HUD labels in copy |
+| `7e0fc14` | feat(ui): finish the pixel-farm acceptance pass |
+| `6321ee9` | fix(ui): close the final redesign audit gaps |
 
 Every hash in this table resolves with `git cat-file -t`. The table now covers
-the Phase 3 and Phase 4 work, the 2026-11-11 v1 hardening commits and the
-2026-11-12 redesign. The design-notes commit is the tip after the table.
+the Phase 3 and Phase 4 work, the 2026-11-11 v1 hardening commits, and the
+2026-11-12/13 redesign through `6321ee9`.
 
 ## How to run
 ```
@@ -168,13 +177,15 @@ were rerun at HEAD.
 Verdict: **ready to proceed to Phase 2.** Phase 1 is in scope, its acceptance
 criteria pass on a running app, and nothing outside the phase was built.
 
-## Visual direction (queued, not built)
-The shipped dark monospace styling is the Phase 1 placeholder. The chosen look is
-warm and cozy, Stardew Valley-inspired but not pixel art; the specification,
-tokens and five-commit rollout live in `docs/design.md`, and the reasoning is in
-`docs/decisions.md` (2026-11-08). This is visual-only work: no behaviour, schema
-or copy changes, no new dependencies, no image files. Phase 1's own doc is left
-unchanged because it records what was actually built.
+## Visual direction (historical; superseded)
+This section records the Phase 1 plan. It was superseded by the built cozy
+pixel-farm redesign in `docs/redesign.md` and the 2026-11-12 decisions entry.
+At the time, the shipped dark monospace styling was the Phase 1 placeholder. The
+chosen look was warm and cozy, Stardew Valley-inspired but not pixel art; the
+specification, tokens and five-commit rollout live in `docs/design.md`, and the
+reasoning is in `docs/decisions.md` (2026-11-08). That work was visual-only: no
+behaviour, schema or copy changes, no new dependencies, no image files. Phase
+1's own doc is left unchanged because it records what was actually built.
 
 ## Phase 2 (2026-11-08)
 

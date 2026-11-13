@@ -683,10 +683,21 @@ Adaptations made to fit the project rules:
   plan task carrying that habit id for the done-today sparkle. Each habit name
   is on a parchment nameplate beneath its crop, and its two actions split the
   tile width so neither label can clip.
+- Below 520px the HUD keeps the same three gauges but drops the combo cue and
+  integrity caption, which already appear in the check-in and heat panels. This
+  keeps the signature check-in in the first screen instead of below a tall stack
+  of explanation.
 
-Verification: `npm test` 156/156, `npm run build` passes, and the rendered DOM
-was checked at 375, 768 and 1440 widths for overflow, control sizes, active tabs,
-focus labels, the due-check-in state and the absence of large radii or blur.
-The final browser pass additionally exercised paused, due, missed, done-today,
-XP, level-up, combo and reduced-motion states in headless Chromium; the results
-are recorded at the end of this entry.
+Verification (2026-11-13): `npm test` is 156/156 and `npm run build` passes after
+the final fixes. Headless Chromium at 375, 768 and 1440 covered the four routes
+with no horizontal overflow and both local fonts loaded. The run exercised due,
+paused, overdue/missed, closed, done-today, XP gain, level-up, combo gain, combo
+reset and reduced-motion states; hover, keyboard focus, pressed and disabled
+controls; and real clicks on a header tab and on the quest's Mark done action.
+Effective checkbox targets measured 44px high through their labels, focus rings
+are a 3px water outline at 2px offset, all visible leaf text passed a computed
+AA contrast audit on every route (with manual checks for the gradient sky and
+due-state surfaces), no display font is below 13px, no radius exceeds 4px and no
+shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
+folder. The existing audio behaviour and level ladder are deliberately unchanged,
+and the redesign still alters no scoring or persistence rule.
