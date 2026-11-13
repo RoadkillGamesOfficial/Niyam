@@ -10,4 +10,16 @@ function trayMenuTemplate() {
   ];
 }
 
-module.exports = { trayMenuTemplate };
+/**
+ * Turns the data into a template Electron can build, keeping the ids so the
+ * live menu can be found by id and driven the way a click drives it.
+ */
+function toMenuTemplate(items, actions) {
+  return items.map((item) =>
+    item.type === "separator"
+      ? { type: "separator" }
+      : { id: item.id, label: item.label, click: () => actions[item.id]?.() },
+  );
+}
+
+module.exports = { toMenuTemplate, trayMenuTemplate };
