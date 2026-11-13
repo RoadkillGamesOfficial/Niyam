@@ -33,6 +33,7 @@
   --wood-dark: #5d3a1a;
   --wood-mid: #8b5a2b;
   --wood-light: #c68b4e;
+  --wood-raised: #96612f;
   --parchment: #fdf0cf;
   --parchment-dark: #ecd49a;
   --gold: #f4b41a;
@@ -40,7 +41,9 @@
   --water: #4aa3df;
   --water-dark: #2a6fa8;
   --heart: #e8605a;
+  --heart-ink: #c94b45; /* the softer heart fill is decorative; this keeps the icon ≥3:1 */
   --leaf: #4caf50;
+  --stone: #8a8278;
   --ink: #3b2410;
   --ink-soft: #6b4a2b;
 
@@ -341,8 +344,8 @@ a {
 }
 
 .inventory-tab:hover {
-  background-color: var(--wood-light);
-  color: var(--wood-dark);
+  background-color: var(--wood-raised);
+  color: var(--parchment);
   transform: translateY(1px);
 }
 
@@ -418,7 +421,7 @@ a {
 }
 
 .status-closed .status-dot {
-  background: var(--parchment-dark);
+  background: var(--stone);
 }
 
 .page-intro {
@@ -664,7 +667,7 @@ a {
 }
 
 .button-alt:hover {
-  background: #96612f;
+  background: var(--wood-raised);
   box-shadow:
     0 5px 0 var(--wood-dark),
     inset 0 3px 0 rgba(255, 255, 255, 0.2);
@@ -918,7 +921,7 @@ a {
 }
 
 .gauge-icon-heart {
-  color: var(--heart);
+  color: var(--heart-ink);
 }
 
 .gauge-label {
@@ -1462,7 +1465,7 @@ a {
 }
 
 .timer--urgent .timer-value {
-  color: var(--gold-dark);
+  color: var(--wood-dark);
 }
 
 .timer--urgent .timer-fill {
@@ -1487,6 +1490,9 @@ a {
 
 .preset-steps > summary,
 .reframe-edit > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   cursor: pointer;
   color: var(--wood-dark);
   font-weight: 700;
@@ -1534,6 +1540,16 @@ a {
 
 .task-current.task-done {
   border-color: var(--wood-dark);
+}
+
+/* A closed or draft day has no active hero, so the first open row is not gold. */
+.stage:not(.stage-running) .task-current {
+  border-color: var(--wood-mid);
+  box-shadow: inset 3px 3px 0 rgba(59, 36, 16, 0.13);
+}
+
+.stage:not(.stage-running) .task-current .task-title {
+  color: var(--ink-soft);
 }
 
 .task form {
@@ -2240,6 +2256,10 @@ a {
 /* ----------------------------------------------------------- responsive ---- */
 
 @media (min-width: 960px) {
+  .stage:not(.stage-running) .garden {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .stage-habits .habit-form {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2513,10 +2533,45 @@ a {
 @media (max-width: 520px) {
   .hud {
     grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 6px;
   }
 
   .gauge-integrity {
     grid-column: auto;
+  }
+
+  .gauge {
+    min-height: 0;
+    gap: 5px;
+    padding: 8px 10px;
+  }
+
+  .gauge-title {
+    font-size: 27px;
+  }
+
+  .gauge-combo .gauge-caption,
+  .gauge-integrity .gauge-caption {
+    display: none;
+  }
+
+  .combo-medallion {
+    width: 56px;
+    height: 56px;
+  }
+
+  .combo-value {
+    font-size: 20px;
+  }
+
+  .integrity-number {
+    font-size: 20px;
+  }
+
+  .xp-segment,
+  .energy-pip {
+    height: 12px;
   }
 
   .dialogue {

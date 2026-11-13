@@ -59,7 +59,7 @@ export function CheckInWatcher({
       if (!AudioContextClass) return;
       const context = new AudioContextClass();
       if (context.state === "suspended") {
-        void context.resume();
+        void context.resume().catch(() => {});
       }
       [660, 880].forEach((frequency, index) => {
         const oscillator = context.createOscillator();
@@ -71,7 +71,9 @@ export function CheckInWatcher({
         oscillator.start(context.currentTime + index * 0.16);
         oscillator.stop(context.currentTime + index * 0.16 + 0.14);
       });
-      setTimeout(() => void context.close(), 1200);
+      setTimeout(() => {
+        void context.close().catch(() => {});
+      }, 1200);
     } catch {
       // Audio is a nicety; a blocked context must never break the prompt.
     }
