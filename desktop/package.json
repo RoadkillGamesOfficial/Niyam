@@ -2,10 +2,11 @@
   "name": "niyam-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Electron shell for Niyam. Phase 0 held the feasibility spikes; the window arrived first, the tray and background check-in follow.",
+  "description": "Electron shell for Niyam. Supervises the local server, restarts it when it dies, and shows a readable failure window. Tray and background check-in follow.",
   "main": "main.js",
   "scripts": {
     "start": "node prepare.mjs && electron .",
+    "test": "node --test \"test/*.test.js\"",
     "spike:node": "node spike/check-node.mjs",
     "spike:server": "node spike/check-server.mjs",
     "spike:electron": "node spike/check-electron.mjs"

@@ -10,6 +10,7 @@
     "build": "node scripts/next.mjs build",
     "start": "node scripts/next.mjs start",
     "test": "node --test \"src/**/*.test.ts\"",
+    "test:desktop": "node --test \"desktop/test/*.test.js\"",
     "seed": "node scripts/seed-insights.mjs",
     "export": "node scripts/export-db.mjs"
   },
