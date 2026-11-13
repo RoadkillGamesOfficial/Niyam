@@ -265,17 +265,7 @@ function closeErrorWindow() {
   errorWindow = null;
 }
 
-function showApp(url) {
-  closeErrorWindow();
-  if (appWindow && !appWindow.isDestroyed()) {
-    console.log(`window reloading to ${url}`);
-    void appWindow.loadURL(url);
-    if (appWindow.isMinimized()) {
-      appWindow.restore();
-    }
-    return;
-  }
-
+function createAppWindow() {
   appWindow = new BrowserWindow({
     width: 1280,
     height: 900,
@@ -298,38 +288,37 @@ function showApp(url) {
   });
   win.once("ready-to-show", () => {
     win.show();
-    console.log(`window open at ${url}`);
+    console.log("window shown");
   });
 
   // Links leave the app; nothing navigates the shell away from its own server.
   win.webContents.setWindowOpenHandler(({ url: target }) => {
-    if (!target.startsWith(url)) {
+    if (!target.startsWith(serverUrl ?? "")) {
       shell.openExternal(target);
     }
     return { action: "deny" };
   });
 
-  void win.loadURL(url);
+  return win;
 }
 
-function showError(reason) {
-  const detail = serverLog.trim()
-    ? `${reason}.\n\n${serverLog.trim().slice(-1_500)}`
-    : `${reason}.`;
-  console.log(`showing the failure window: ${reason}`);
-
-  if (appWindow && !appWindow.isDestroyed()) {
-    appWindow.destroy();
+function showApp(url) {
+  // The replacement window has to exist before anything else is destroyed:
+  // Electron emits window-all-closed the moment the last window goes, and that
+  // handler quits the app. This is what made Retry kill the shell after the
+  // server had already come back up.
+  if (!appWindow || appWindow.isDestroyed()) {
+    createAppWindow();
   }
-  appWindow = null;
-
-  if (errorWindow && !errorWindow.isDestroyed()) {
-    void errorWindow.loadFile(errorPage, { query: { reason: detail } });
-    errorWindow.show();
-    errorWindow.focus();
-    return;
+  closeErrorWindow();
+  if (appWindow.isMinimized()) {
+    appWindow.restore();
   }
+  console.log(`window loading ${url}`);
+  void appWindow.loadURL(url);
+}
 
+function createErrorWindow() {
   errorWindow = new BrowserWindow({
     width: 660,
     height: 480,
@@ -353,7 +342,28 @@ function showError(reason) {
   win.webContents.on("did-finish-load", () => {
     console.log(`failure window loaded: ${win.webContents.getURL().slice(0, 240)}`);
   });
-  void win.loadFile(errorPage, { query: { reason: detail } });
+  return win;
+}
+
+function showError(reason) {
+  const detail = serverLog.trim()
+    ? `${reason}.\n\n${serverLog.trim().slice(-1_500)}`
+    : `${reason}.`;
+  console.log(`showing the failure window: ${reason}`);
+
+  // Same ordering rule as showApp: the replacement window exists before the old
+  // one is destroyed, so the shell never passes through zero windows.
+  if (!errorWindow || errorWindow.isDestroyed()) {
+    createErrorWindow();
+  }
+  if (appWindow && !appWindow.isDestroyed()) {
+    appWindow.destroy();
+  }
+  appWindow = null;
+
+  void errorWindow.loadFile(errorPage, { query: { reason: detail } });
+  errorWindow.show();
+  errorWindow.focus();
 }
 
 function installPermissionHandlers() {
