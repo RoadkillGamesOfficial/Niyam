@@ -702,6 +702,20 @@ shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
 folder. The existing audio behaviour and level ladder are deliberately unchanged,
 and the redesign still alters no scoring or persistence rule.
 
+## 2026-11-13 — Desktop phase 5 is planned: a per-user installer
+
+The four installer questions were answered as recommended and are recorded in
+`docs/desktop-phase-5-installer.md`: a per-user NSIS install into
+`%LOCALAPPDATA%\Programs\Niyam` with no admin prompt, unsigned for now with the
+SmartScreen warning documented, no auto-update in this version, and data in
+`%APPDATA%\Niyam`. Uninstall asks before deleting that folder, as phase 3 fixed.
+
+The plan names one structural risk rather than hiding it: installed, the server
+must be a real file under `resources\app`, and the reminder loop requires the
+app's `.ts` modules from the asar. If type stripping from inside the asar does not
+hold, `src` ships unpacked and the require prefers that path. Nothing is built
+yet.
+
 ## 2026-11-13 — Desktop phase 4: a check-in that arrives on its own
 
 The four questions the plan asked were answered as recommended: resident
