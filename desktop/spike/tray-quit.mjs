@@ -3,7 +3,7 @@
 // with Electron's (menuItem, browserWindow, event) signature.
 //
 //   NIYAM_DEBUG_TRAY=1 npx electron --inspect=9229 .    (in desktop/)
-//   node spike/tray-quit.mjs 9229
+//   node spike/tray-quit.mjs 9229 [itemId]        (default: quit; try snooze)
 //
 // The hook hands the live tray to the inspector; nothing here rebuilds a menu.
 import { setTimeout as delay } from "node:timers/promises";
@@ -14,6 +14,8 @@ const base = `http://127.0.0.1:${port}`;
 if (typeof WebSocket === "undefined") {
   throw new Error(`this harness needs a Node with global WebSocket (running ${process.version})`);
 }
+
+const itemId = process.argv[3] ?? "quit";
 
 async function findMainTarget() {
   const deadline = Date.now() + 10_000;
@@ -95,8 +97,8 @@ console.log(`live menu: ${JSON.stringify(inspected)}`);
 const clicked = valueOf(
   await evaluate(`(() => {
     const shell = globalThis.__niyamTray;
-    const item = shell.menu.getMenuItemById("quit");
-    if (!item) return { ok: false, error: "the live menu has no Quit item" };
+    const item = shell.menu.getMenuItemById(${JSON.stringify(itemId)});
+    if (!item) return { ok: false, error: "the live menu has no ${itemId} item", ids: shell.menu.items.map((entry) => entry.id) };
     item.click(item, undefined, {});
     return { ok: true, clicked: item.label };
   })()`),
