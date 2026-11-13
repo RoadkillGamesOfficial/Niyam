@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
+import { dataRoot } from "../app-root.ts";
 import { CONFIG } from "../config.ts";
 
 // A backup is a SQLite snapshot, never a copy of a live database file. VACUUM
@@ -41,11 +42,14 @@ export type BackupOptions = {
   retain?: number;
 };
 
-const LIVE_DATABASE = resolve(
-  process.cwd(),
-  CONFIG.database.directory,
-  CONFIG.database.filename,
-);
+/**
+ * The database the app opens when NIYAM_DB is not set. Its backups belong in
+ * the data folder beside it; any other database is a throwaway and keeps its
+ * own sibling folder. Resolved per call so the data root stays configurable.
+ */
+function liveDatabasePath(): string {
+  return join(dataRoot(), CONFIG.database.filename);
+}
 
 function stamp(now: Date): string {
   return now.toISOString().replace(/[:.]/g, "-");
@@ -57,7 +61,7 @@ export function backupFileName(now: Date = new Date()): string {
 
 export function exportFilePath(now: Date = new Date()): string {
   return resolve(
-    process.cwd(),
+    dataRoot(),
     CONFIG.export.directory,
     `${CONFIG.export.filenamePrefix}${stamp(now)}.db`,
   );
@@ -70,8 +74,8 @@ export function exportFilePath(now: Date = new Date()): string {
  */
 export function backupDirectoryFor(databaseFile: string): string {
   const target = resolve(databaseFile);
-  if (target === LIVE_DATABASE) {
-    return resolve(process.cwd(), CONFIG.backup.directory);
+  if (target === liveDatabasePath()) {
+    return resolve(dataRoot(), CONFIG.backup.directory);
   }
   const leaf = basename(target, extname(target));
   return join(dirname(target), `${leaf}-backups`);

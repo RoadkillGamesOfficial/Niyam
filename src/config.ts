@@ -5,20 +5,21 @@
 
 export const CONFIG = {
   database: {
-    // Relative to the project root, which is where dev, start and tests run from.
+    // The data folder name, under the app root. See src/app-root.ts.
     directory: "data",
     filename: "discipline.db", // never contains the product name; see docs/decisions.md
   },
   backup: {
-    // A snapshot is written at most once per interval, and only the newest keep
-    // are retained. These are tunables, like the game numbers.
-    directory: "data/backups",
+    // Relative to the data root (src/app-root.ts). A snapshot is written at
+    // most once per interval, and only the newest keep are retained.
+    directory: "backups",
     intervalHours: 24,
     keep: 7,
     filenamePrefix: "niyam-backup-",
   },
   export: {
-    directory: "data/exports",
+    // Relative to the data root, so an installed app writes to its own folder.
+    directory: "exports",
     filenamePrefix: "niyam-export-",
   },
   tasks: {
