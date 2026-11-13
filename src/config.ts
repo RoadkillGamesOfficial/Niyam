@@ -65,6 +65,15 @@ export const CONFIG = {
     // than a day of slots in one pass.
     maxCatchUp: 48,
   },
+  reminders: {
+    // Phase 4. The shell looks for a due check-in while the window is closed;
+    // the interval itself stays the user's setting, and quiet hours come from
+    // the same row. A firm reminder repeats, but never more than this.
+    tickMinutes: 1,
+    snoozeMinutes: 60,
+    repeatMinutes: 5,
+    maxRepeats: 3,
+  },
   integrity: {
     windowDays: 14,
     floor: 0.2, // never reaches an unrecoverable "dead" state

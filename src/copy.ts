@@ -8,6 +8,13 @@ export const PRODUCT_NAME = "Niyam";
 export const COPY = {
   metaDescription:
     "A quiet companion for planning the day and keeping momentum. It all stays on this laptop.",
+  reminders: {
+    // Phase 4: what a check-in says when it reaches the desktop instead of the
+    // page. The task title goes into {task} and is shortened before it gets there.
+    title: "Check-in",
+    noTask: "How is it going?",
+    withTask: "Still on {task}?",
+  },
   nav: {
     home: "Today",
     settings: "Settings",
