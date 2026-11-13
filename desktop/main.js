@@ -1,14 +1,16 @@
-// Phase 2 shell: the main process owns the server child for the whole app
-// lifetime, restarts it with bounded backoff when it dies or stops answering,
-// and shows a readable failure window instead of a blank one.
+// Desktop shell: owns the server child for the app's life, restarts it with
+// bounded backoff when it dies, and lives in the tray when the window is closed.
 //
-// Closing the window still quits (the tray and the background check-in are
-// phases 3 and 4), and the browser entry points are untouched.
+// Phase 3 rules (docs/decisions.md): closing the window hides it, the server
+// keeps running for a grace period and then stops, and Quit from the tray is the
+// only way to end the app. Autostart is deliberately not offered yet.
 
-const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, Notification, session, shell } = require("electron");
 const { spawn } = require("node:child_process");
+const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const net = require("node:net");
 const path = require("node:path");
+const { DEFAULT_GRACE_MS, createGrace } = require("./lifecycle.js");
 const {
   MAX_ATTEMPTS,
   classifyExit,
@@ -16,6 +18,7 @@ const {
   nextDelay,
   shouldRetry,
 } = require("./supervisor.js");
+const { createTray } = require("./tray.js");
 
 const root = path.resolve(__dirname, "..");
 const standalone = path.join(root, ".next", "standalone");
@@ -28,6 +31,11 @@ const preloadScript = path.join(__dirname, "preload.js");
 // database against the bundle instead of the project.
 const appRootDir = process.env.NIYAM_APP_ROOT || root;
 const dataDir = process.env.NIYAM_DATA_DIR || path.join(appRootDir, "data");
+
+// NIYAM_GRACE_MS exists so the grace window can be exercised in seconds.
+const GRACE_MS = Number(process.env.NIYAM_GRACE_MS) > 0
+  ? Number(process.env.NIYAM_GRACE_MS)
+  : DEFAULT_GRACE_MS;
 
 const STARTUP_TIMEOUT_MS = 20_000;
 const HEALTH_INTERVAL_MS = 5_000;
@@ -49,6 +57,13 @@ let healthFailures = 0;
 let quitting = false;
 let appWindow = null;
 let errorWindow = null;
+let tray = null;
+// True while the user has deliberately put the app in the tray, so a server
+// restart never pops the window back open on its own.
+let hiddenByUser = false;
+
+const grace = createGrace(GRACE_MS);
+let graceTimer = null;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -291,6 +306,17 @@ function createAppWindow() {
     console.log("window shown");
   });
 
+  // Closing the window is "hide", never "quit" (docs/decisions.md).
+  win.on("close", (event) => {
+    if (quitting) {
+      return;
+    }
+    event.preventDefault();
+    // Destroy on the next tick: the renderer is freed, and the close event has
+    // already returned by then.
+    setImmediate(hideWindow);
+  });
+
   // Links leave the app; nothing navigates the shell away from its own server.
   win.webContents.setWindowOpenHandler(({ url: target }) => {
     if (!target.startsWith(serverUrl ?? "")) {
@@ -303,19 +329,119 @@ function createAppWindow() {
 }
 
 function showApp(url) {
+  hiddenByUser = false;
   // The replacement window has to exist before anything else is destroyed:
-  // Electron emits window-all-closed the moment the last window goes, and that
-  // handler quits the app. This is what made Retry kill the shell after the
-  // server had already come back up.
+  // Electron emits window-all-closed the moment the last window goes.
   if (!appWindow || appWindow.isDestroyed()) {
     createAppWindow();
   }
   closeErrorWindow();
+  disarmGrace();
   if (appWindow.isMinimized()) {
     appWindow.restore();
   }
   console.log(`window loading ${url}`);
   void appWindow.loadURL(url);
+}
+
+function hideWindow() {
+  const win = appWindow;
+  if (!win || win.isDestroyed()) {
+    return;
+  }
+  win.destroy();
+  appWindow = null;
+  hiddenByUser = true;
+  console.log("window hidden to tray");
+  armGrace();
+  showCloseNoticeOnce();
+}
+
+function showWindow() {
+  disarmGrace();
+  if (appWindow && !appWindow.isDestroyed()) {
+    if (appWindow.isMinimized()) {
+      appWindow.restore();
+    }
+    appWindow.show();
+    appWindow.focus();
+    return;
+  }
+  if (serverUrl && server && server.exitCode === null) {
+    showApp(serverUrl);
+    return;
+  }
+  console.log("window requested with no server running; starting it");
+  void startServer();
+}
+
+function armGrace() {
+  if (quitting) {
+    return;
+  }
+  grace.arm(Date.now());
+  clearGraceTimer();
+  graceTimer = setTimeout(async () => {
+    graceTimer = null;
+    if (quitting) {
+      return;
+    }
+    if (appWindow && !appWindow.isDestroyed()) {
+      return;
+    }
+    if (!server || server.exitCode !== null) {
+      return;
+    }
+    console.log(`grace expired after ${Math.round(GRACE_MS / 1000)}s: stopping the server`);
+    await stopServer();
+    console.log("server stopped while hidden");
+  }, GRACE_MS);
+  console.log(`grace armed: the server stops in ${Math.round(GRACE_MS / 1000)}s if the window stays closed`);
+}
+
+function disarmGrace() {
+  grace.disarm();
+  clearGraceTimer();
+}
+
+function clearGraceTimer() {
+  if (graceTimer) {
+    clearTimeout(graceTimer);
+    graceTimer = null;
+  }
+}
+
+function closeNoticePath() {
+  return path.join(app.getPath("userData"), "desktop-state.json");
+}
+
+function closeNoticeAlreadyShown() {
+  try {
+    return JSON.parse(readFileSync(closeNoticePath(), "utf8")).closeNoticeShown === true;
+  } catch {
+    return false;
+  }
+}
+
+function showCloseNoticeOnce() {
+  if (closeNoticeAlreadyShown()) {
+    return;
+  }
+  try {
+    const file = closeNoticePath();
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(file, JSON.stringify({ closeNoticeShown: true }));
+  } catch {
+    // A notice is a nicety; never let it break the shell.
+  }
+  if (!Notification.isSupported()) {
+    return;
+  }
+  new Notification({
+    title: "Niyam is still running",
+    body: "It keeps going in the tray. Choose Quit there to close it.",
+  }).show();
+  console.log("close notice shown");
 }
 
 function createErrorWindow() {
@@ -402,31 +528,35 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on("second-instance", () => {
-    const win = [appWindow, errorWindow].find((candidate) => candidate && !candidate.isDestroyed());
-    console.log(`second launch: focusing ${win ? "the existing window" : "nothing (still starting)"}`);
-    if (!win) {
-      return;
-    }
-    if (win.isMinimized()) {
-      win.restore();
-    }
-    win.show();
-    app.focus({ steal: true });
-    win.focus();
+    console.log("second launch: showing the existing window");
+    showWindow();
   });
 
   app.whenReady().then(() => {
     app.setAppUserModelId("Niyam");
     installPermissionHandlers();
+    tray = createTray({ onOpen: showWindow, onQuit: () => app.quit() });
+    console.log(`tray created (grace ${Math.round(GRACE_MS / 1000)}s)`);
     void startServer();
   });
 
-  app.on("window-all-closed", () => app.quit());
+  app.on("window-all-closed", () => {
+    // The tray keeps the app alive, so this is not a quit. Without a tray there
+    // would be no way back, so fall back to quitting.
+    if (!tray) {
+      app.quit();
+    }
+  });
 
   app.on("before-quit", () => {
     quitting = true;
     clearRestartTimer();
+    clearGraceTimer();
     stopHealthWatch();
+    if (tray) {
+      tray.destroy();
+      tray = null;
+    }
     const child = server;
     server = null;
     if (child && child.exitCode === null) {
