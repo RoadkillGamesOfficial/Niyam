@@ -11,9 +11,11 @@ const root = path.resolve(__dirname, "..");
 const standalone = path.join(root, ".next", "standalone");
 const serverEntry = path.join(standalone, "server.js");
 
-// The standalone server chdirs into its own folder, so the database has to be
-// named explicitly or it would open the copy traced into the build output.
-const database = process.env.NIYAM_DB || path.join(root, "data", "discipline.db");
+// The standalone server chdirs into its own folder, so the shell states both
+// roots explicitly; otherwise the server would resolve migrations and the
+// database against the bundle instead of the project.
+const appRootDir = process.env.NIYAM_APP_ROOT || root;
+const dataDir = process.env.NIYAM_DATA_DIR || path.join(appRootDir, "data");
 
 let server = null;
 let log = "";
@@ -56,7 +58,9 @@ async function start() {
       ELECTRON_RUN_AS_NODE: "1",
       PORT: String(port),
       HOSTNAME: "127.0.0.1",
-      NIYAM_DB: database,
+      NIYAM_APP_ROOT: appRootDir,
+      NIYAM_DATA_DIR: dataDir,
+      ...(process.env.NIYAM_DB ? { NIYAM_DB: process.env.NIYAM_DB } : {}),
       NEXT_TELEMETRY_DISABLED: "1",
     },
     stdio: ["ignore", "pipe", "pipe"],
