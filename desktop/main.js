@@ -23,7 +23,15 @@ const { readCheckinTick } = require("./reminder-db.js");
 const { createReminderTimer } = require("./reminder-timer.js");
 const { createTray } = require("./tray.js");
 
-const root = path.resolve(__dirname, "..");
+// Installed, the app root is the unpacked bundle under resources/app: the server
+// is spawned as a child, so it has to be a real file on disk, not inside the asar.
+const repoRoot = path.resolve(__dirname, "..");
+// Electron would otherwise key userData on the package name (niyam-desktop); the
+// product is Niyam, %APPDATA%\Niyam is what the installer promises and what the
+// uninstaller asks about. This has to happen before getPath("userData") below.
+app.setName("Niyam");
+
+const root = app.isPackaged ? path.join(process.resourcesPath, "app") : repoRoot;
 const standalone = path.join(root, ".next", "standalone");
 const serverEntry = path.join(standalone, "server.js");
 const errorPage = path.join(__dirname, "error.html");
@@ -33,12 +41,18 @@ const preloadScript = path.join(__dirname, "preload.js");
 // roots explicitly; otherwise the server would resolve migrations and the
 // database against the bundle instead of the project.
 const appRootDir = process.env.NIYAM_APP_ROOT || root;
-const dataDir = process.env.NIYAM_DATA_DIR || path.join(appRootDir, "data");
+// %APPDATA%\Niyam when installed (Electron's userData), the repo's data folder in
+// development. The uninstaller asks about exactly this folder.
+const dataDir =
+  process.env.NIYAM_DATA_DIR ||
+  (app.isPackaged ? app.getPath("userData") : path.join(appRootDir, "data"));
 
 // The reminder tick runs here and the server runs in a child, so both have to
 // resolve the same roots; the tick reads them from the environment.
 process.env.NIYAM_APP_ROOT ??= appRootDir;
 process.env.NIYAM_DATA_DIR ??= dataDir;
+console.log(`app root ${appRootDir}`);
+console.log(`data root ${dataDir}`);
 
 // NIYAM_GRACE_MS exists so the grace window can be exercised in seconds.
 const GRACE_MS = Number(process.env.NIYAM_GRACE_MS) > 0
@@ -469,7 +483,8 @@ function loadReminderModules() {
     return reminderModules;
   }
   try {
-    const srcDir = path.join(__dirname, "..", "src");
+    // Packaged, this is resources/app/src; in development it is the repo's src.
+    const srcDir = path.join(appRootDir, "src");
     reminderModules = {
       CONFIG: require(path.join(srcDir, "config.ts")).CONFIG,
       COPY: require(path.join(srcDir, "copy.ts")).COPY,

@@ -7,12 +7,17 @@
 
 const path = require("node:path");
 
-const srcDir = path.join(__dirname, "..", "src");
+// Resolved on use: main.js sets NIYAM_APP_ROOT before the first tick, and packed
+// builds keep the sources unpacked in resources/app/src.
+function sourceDir() {
+  return path.join(process.env.NIYAM_APP_ROOT || path.join(__dirname, ".."), "src");
+}
 
 let modules = null;
 
 function appModules() {
   if (!modules) {
+    const srcDir = sourceDir();
     modules = {
       openDatabase: require(path.join(srcDir, "db", "database.ts")).openDatabase,
       getDayByDate: require(path.join(srcDir, "db", "days.ts")).getDayByDate,
