@@ -45,7 +45,12 @@ way to end the process. The first close says so once, in a notification.
 A hidden app costs more than it looks: about 255-319 MB working set, because
 Chromium keeps its GPU and utility processes for the life of the app. Start with
 Windows and the background check-in come in the next phases, so this is not yet
-an installed product.
+an installed product. The phase 4 plan, including the footprint trade-off it has
+to settle, is in `docs/desktop-phase-4-background-check-in.md`.
+
+`desktop/spike/tray-quit.mjs` drives the tray's Quit item in a running app
+(launch with `NIYAM_DEBUG_TRAY=1` and `--inspect=9229`); it is how the only exit
+path is verified.
 
 ## Where the data lives
 

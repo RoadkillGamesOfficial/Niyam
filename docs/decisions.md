@@ -702,6 +702,25 @@ shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
 folder. The existing audio behaviour and level ladder are deliberately unchanged,
 and the redesign still alters no scoring or persistence rule.
 
+## 2026-11-13 — Tray Quit is driven, not assumed
+
+Quit is the only way out of the desktop app, so it is now exercised the way a
+user exercises it: `desktop/spike/tray-quit.mjs` attaches to the main process
+over its inspector, takes the Quit `MenuItem` out of the menu the tray actually
+shows, and calls it with Electron's own `(menuItem, browserWindow, event)`
+signature. Run with the window hidden and the server up, the log reads
+`quit requested (grace armed)` → `grace timer cleared` → `tray removed` →
+`server child stopped`, and no Electron or server process survives; run after the
+grace had already stopped the server, the same path reports `grace idle`, removes
+the tray and leaves nothing behind, with the grace never firing afterwards.
+
+The tray keeps the ids it shows (and returns its menu), which is what makes that
+possible; the mapping from menu data to template is pure and unit-tested. The
+hook that hands the live tray to the inspector is behind `NIYAM_DEBUG_TRAY=1`.
+
+The icon is a 32×32 RGBA PNG, 175 bytes, valid signature, `nativeImage` reports
+it non-empty with size 32×32 — but nobody has looked at the pixels.
+
 ## 2026-11-13 — Desktop phase 3: the app lives in the tray
 
 Decision: the window is no longer the app. Closing it hides it, a tray icon
