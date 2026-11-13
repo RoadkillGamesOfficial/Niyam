@@ -10,24 +10,34 @@ const iconPath = path.join(__dirname, "assets", "tray.png");
  * Returns the tray together with the menu it shows, so a caller can reach the
  * real items (`menu.getMenuItemById`) instead of rebuilding them.
  */
-function createTray({ onOpen, onQuit }) {
+function createTray({ onOpen, onQuit, onSnooze, snoozed = false }) {
   const image = nativeImage.createFromPath(iconPath);
-  const menu = Menu.buildFromTemplate(
-    toMenuTemplate(trayMenuTemplate(), { open: onOpen, quit: onQuit }),
-  );
+  const actions = { open: onOpen, snooze: onSnooze, resume: onSnooze, quit: onQuit };
 
   const tray = new Tray(image);
   tray.setToolTip("Niyam");
-  tray.setContextMenu(menu);
-
-  // A single left click should bring the window back, as every tray app does.
   tray.on("click", onOpen);
+
+  let menu = null;
+  function apply(nextSnoozed) {
+    menu = Menu.buildFromTemplate(
+      toMenuTemplate(trayMenuTemplate({ snoozed: nextSnoozed }), actions),
+    );
+    tray.setContextMenu(menu);
+    return menu;
+  }
+  apply(snoozed);
 
   return {
     tray,
-    menu,
+    get menu() {
+      return menu;
+    },
     iconSize: image.getSize(),
     iconEmpty: image.isEmpty(),
+    setSnoozed(next) {
+      apply(next);
+    },
     destroy() {
       tray.destroy();
     },

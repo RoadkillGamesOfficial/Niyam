@@ -2,14 +2,21 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { toMenuTemplate, trayMenuTemplate } = require("../tray-menu.js");
 
-test("the tray offers exactly Open and Quit", () => {
+test("the tray offers Open, one reminder switch and Quit", () => {
   const items = trayMenuTemplate();
   const actions = items.filter((item) => item.type !== "separator");
   assert.deepEqual(
     actions.map((item) => item.label),
-    ["Open", "Quit"],
+    ["Open", "Snooze for an hour", "Quit"],
   );
   assert.equal(items.filter((item) => item.type === "separator").length, 1);
+});
+
+test("the reminder switch flips while snoozed", () => {
+  const snoozed = trayMenuTemplate({ snoozed: true });
+  assert.equal(snoozed[1].id, "resume");
+  assert.equal(snoozed[1].label, "Resume reminders");
+  assert.equal(snoozed.filter((item) => item.id === "snooze").length, 0);
 });
 
 test("no autostart item is offered yet", () => {
@@ -26,9 +33,9 @@ test("each item keeps its id and calls its own action", () => {
   });
   assert.deepEqual(
     template.filter((item) => item.type !== "separator").map((item) => item.id),
-    ["open", "quit"],
+    ["open", "snooze", "quit"],
   );
-  assert.equal(template[1].type, "separator");
+  assert.equal(template[2].type, "separator");
   template.find((item) => item.id === "quit").click();
   template.find((item) => item.id === "open").click();
   assert.deepEqual(called, ["quit", "open"]);
@@ -46,5 +53,5 @@ test("ids are unique so each action fires once", () => {
     .filter((item) => item.type !== "separator")
     .map((item) => item.id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.deepEqual(ids, ["open", "quit"]);
+  assert.deepEqual(ids, ["open", "snooze", "quit"]);
 });

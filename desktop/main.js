@@ -18,6 +18,9 @@ const {
   nextDelay,
   shouldRetry,
 } = require("./supervisor.js");
+const { createNotifier } = require("./notify.js");
+const { readCheckinTick } = require("./reminder-db.js");
+const { createReminderTimer } = require("./reminder-timer.js");
 const { createTray } = require("./tray.js");
 
 const root = path.resolve(__dirname, "..");
@@ -31,6 +34,11 @@ const preloadScript = path.join(__dirname, "preload.js");
 // database against the bundle instead of the project.
 const appRootDir = process.env.NIYAM_APP_ROOT || root;
 const dataDir = process.env.NIYAM_DATA_DIR || path.join(appRootDir, "data");
+
+// The reminder tick runs here and the server runs in a child, so both have to
+// resolve the same roots; the tick reads them from the environment.
+process.env.NIYAM_APP_ROOT ??= appRootDir;
+process.env.NIYAM_DATA_DIR ??= dataDir;
 
 // NIYAM_GRACE_MS exists so the grace window can be exercised in seconds.
 const GRACE_MS = Number(process.env.NIYAM_GRACE_MS) > 0
@@ -58,6 +66,12 @@ let quitting = false;
 let appWindow = null;
 let errorWindow = null;
 let tray = null;
+let reminderTimer = null;
+let reminderModules = undefined;
+let lastReminder = { dueAt: "", count: 0, lastAt: 0 };
+let snoozeUntil = 0;
+
+const notifier = createNotifier({ onOpen: () => showWindow() });
 // True while the user has deliberately put the app in the tray, so a server
 // restart never pops the window back open on its own.
 let hiddenByUser = false;
@@ -330,6 +344,7 @@ function createAppWindow() {
 
 function showApp(url) {
   hiddenByUser = false;
+  ensureReminders();
   // The replacement window has to exist before anything else is destroyed:
   // Electron emits window-all-closed the moment the last window goes.
   if (!appWindow || appWindow.isDestroyed()) {
@@ -411,29 +426,33 @@ function clearGraceTimer() {
   }
 }
 
-function closeNoticePath() {
+function statePath() {
   return path.join(app.getPath("userData"), "desktop-state.json");
 }
 
-function closeNoticeAlreadyShown() {
+function readState() {
   try {
-    return JSON.parse(readFileSync(closeNoticePath(), "utf8")).closeNoticeShown === true;
+    return JSON.parse(readFileSync(statePath(), "utf8"));
   } catch {
-    return false;
+    return {};
+  }
+}
+
+function writeState(patch) {
+  try {
+    const file = statePath();
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(file, JSON.stringify({ ...readState(), ...patch }));
+  } catch {
+    // Shell state is a convenience; never let it break the app.
   }
 }
 
 function showCloseNoticeOnce() {
-  if (closeNoticeAlreadyShown()) {
+  if (readState().closeNoticeShown === true) {
     return;
   }
-  try {
-    const file = closeNoticePath();
-    mkdirSync(path.dirname(file), { recursive: true });
-    writeFileSync(file, JSON.stringify({ closeNoticeShown: true }));
-  } catch {
-    // A notice is a nicety; never let it break the shell.
-  }
+  writeState({ closeNoticeShown: true });
   if (!Notification.isSupported()) {
     return;
   }
@@ -442,6 +461,115 @@ function showCloseNoticeOnce() {
     body: "It keeps going in the tray. Choose Quit there to close it.",
   }).show();
   console.log("close notice shown");
+}
+
+/** The app's own modules, loaded lazily: a broken build must not stop the shell. */
+function loadReminderModules() {
+  if (reminderModules !== undefined) {
+    return reminderModules;
+  }
+  try {
+    const srcDir = path.join(__dirname, "..", "src");
+    reminderModules = {
+      CONFIG: require(path.join(srcDir, "config.ts")).CONFIG,
+      COPY: require(path.join(srcDir, "copy.ts")).COPY,
+      decideReminder: require(path.join(srcDir, "reminders", "decide.ts")).decideReminder,
+    };
+    console.log("reminder modules loaded");
+  } catch (error) {
+    reminderModules = null;
+    console.log(`reminder modules unavailable: ${error.message}`);
+  }
+  return reminderModules;
+}
+
+/**
+ * Reminders begin once the app has a window: a toast that races the window it is
+ * about to open would speak twice for the same check-in.
+ */
+function ensureReminders() {
+  if (reminderTimer || quitting) {
+    return;
+  }
+  startReminders();
+}
+
+function startReminders() {
+  const modules = loadReminderModules();
+  const configured = modules?.CONFIG.reminders.tickMinutes ?? 1;
+  const intervalMs =
+    Number(process.env.NIYAM_REMINDER_TICK_MS) > 0
+      ? Number(process.env.NIYAM_REMINDER_TICK_MS)
+      : configured * 60_000;
+  reminderTimer = createReminderTimer({
+    intervalMs,
+    tick: reminderTick,
+    onError: (error) => console.log(`reminder tick failed: ${error.message}`),
+  });
+  reminderTimer.start();
+  console.log(`reminder loop started (every ${Math.round(intervalMs / 1000)}s)`);
+}
+
+function toggleSnooze() {
+  const now = Date.now();
+  if (snoozeUntil > now) {
+    snoozeUntil = 0;
+    writeState({ snoozedUntil: 0 });
+    tray?.setSnoozed(false);
+    console.log("reminders resumed from the tray");
+    return;
+  }
+  const minutes = loadReminderModules()?.CONFIG.reminders.snoozeMinutes ?? 60;
+  snoozeUntil = now + minutes * 60_000;
+  writeState({ snoozedUntil: snoozeUntil });
+  tray?.setSnoozed(true);
+  console.log(`reminders snoozed for ${minutes} minutes from the tray`);
+}
+
+/**
+ * One reminder tick. The open window shows the check-in itself, so a toast is
+ * only for a hidden app; quiet hours, gentle and the repeat limits are decided
+ * in src/reminders/decide.ts.
+ */
+async function reminderTick(now) {
+  if (quitting || (appWindow && !appWindow.isDestroyed()) || snoozeUntil > now.getTime()) {
+    return;
+  }
+  const modules = loadReminderModules();
+  if (!modules) {
+    return;
+  }
+  const checkin = readCheckinTick(now);
+  const decision = modules.decideReminder({
+    level: checkin.level,
+    pending: checkin.pending,
+    notified: lastReminder,
+    maxRepeats: modules.CONFIG.reminders.maxRepeats,
+    repeatMinutes: modules.CONFIG.reminders.repeatMinutes,
+    nowMs: now.getTime(),
+  });
+  if (decision.action !== "notify") {
+    return;
+  }
+  if (!notifier.show({ title: modules.COPY.reminders.title, body: decision.body })) {
+    return;
+  }
+  lastReminder = {
+    dueAt: decision.dueAt,
+    count: (lastReminder.dueAt === decision.dueAt ? lastReminder.count : 0) + 1,
+    lastAt: now.getTime(),
+  };
+  console.log(`reminder ${decision.repeat ? "repeated" : "shown"} for ${decision.dueAt}`);
+}
+
+/** Autostart belongs to the installed build; in development it would register Electron. */
+function applyLoginItem() {
+  if (!app.isPackaged) {
+    console.log("login item left alone in development");
+    return;
+  }
+  app.setLoginItemSettings({ openAtLogin: true });
+  console.log(`login item openAtLogin=${app.getLoginItemSettings().openAtLogin}`);
 }
 
 function createErrorWindow() {
@@ -472,6 +600,7 @@ function createErrorWindow() {
 }
 
 function showError(reason) {
+  ensureReminders();
   const detail = serverLog.trim()
     ? `${reason}.\n\n${serverLog.trim().slice(-1_500)}`
     : `${reason}.`;
@@ -535,12 +664,24 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     app.setAppUserModelId("Niyam");
     installPermissionHandlers();
-    tray = createTray({ onOpen: showWindow, onQuit: () => app.quit() });
-    console.log(`tray created (grace ${Math.round(GRACE_MS / 1000)}s)`);
+    applyLoginItem();
+    snoozeUntil = Number(readState().snoozedUntil) || 0;
+    tray = createTray({
+      onOpen: showWindow,
+      onQuit: () => app.quit(),
+      onSnooze: toggleSnooze,
+      snoozed: snoozeUntil > Date.now(),
+    });
+    console.log(
+      `tray created (grace ${Math.round(GRACE_MS / 1000)}s, reminders ${
+        snoozeUntil > Date.now() ? "snoozed" : "on"
+      })`,
+    );
     if (process.env.NIYAM_DEBUG_TRAY === "1") {
       // Spike hook for desktop/spike/tray-quit.mjs: hands the live tray (and the
       // menu it shows) to the inspector so the real Quit item can be driven.
       globalThis.__niyamTray = tray;
+      globalThis.__niyamNotifier = notifier;
       console.log(`tray icon ${JSON.stringify(tray.iconSize)} empty=${tray.iconEmpty}`);
     }
     void startServer();
@@ -564,6 +705,11 @@ if (!app.requestSingleInstanceLock()) {
       console.log("grace timer cleared");
     }
     stopHealthWatch();
+    if (reminderTimer) {
+      reminderTimer.stop();
+      reminderTimer = null;
+      console.log("reminder loop stopped");
+    }
     if (tray) {
       tray.destroy();
       tray = null;

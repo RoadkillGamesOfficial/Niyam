@@ -1,10 +1,13 @@
 // The tray menu as data, so the decision is testable without Electron.
-// Deliberately two items: Open and Quit. Autostart is deferred until the
-// background check-in gives it a purpose (see docs/decisions.md).
+// Open, one reminder switch, Quit. Autostart is not a tray item: it belongs to
+// the installer and Windows' own startup settings (see docs/decisions.md).
 
-function trayMenuTemplate() {
+function trayMenuTemplate({ snoozed = false } = {}) {
   return [
     { id: "open", label: "Open" },
+    snoozed
+      ? { id: "resume", label: "Resume reminders" }
+      : { id: "snooze", label: "Snooze for an hour" },
     { type: "separator" },
     { id: "quit", label: "Quit" },
   ];
