@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { appRoot, dataRoot } from "../app-root.ts";
 import { CONFIG } from "../config.ts";
 import { runMigrations } from "./migrations.ts";
 
@@ -13,9 +14,9 @@ export function databasePath(): string {
   // NIYAM_DB=data/seed.db npm run dev. It is not required for normal use.
   const override = process.env.NIYAM_DB?.trim();
   if (override) {
-    return isAbsolute(override) ? override : resolve(process.cwd(), override);
+    return isAbsolute(override) ? override : resolve(appRoot(), override);
   }
-  return join(process.cwd(), CONFIG.database.directory, CONFIG.database.filename);
+  return join(dataRoot(), CONFIG.database.filename);
 }
 
 /**
