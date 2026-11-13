@@ -12,7 +12,7 @@ export function dayStatus(
     return { label: COPY.home.closedBadge, state: "closed" };
   }
   if (paused) {
-    return { label: COPY.habits.pausedTag, state: "paused" };
+    return { label: COPY.home.pausedBadge, state: "paused" };
   }
   if (planStatus === "active") {
     return { label: COPY.home.runningBadge, state: "running" };

@@ -74,7 +74,7 @@ export default async function InsightsPage() {
         : COPY.insights.noCheckins,
     );
     if (daily.drifted + daily.missed > 0) {
-      dailyLines.push(COPY.insights.driftLine(daily.drifted + daily.missed));
+      dailyLines.push(COPY.insights.driftLine(daily.drifted, daily.missed));
     }
     if (daily.xp > 0) {
       dailyLines.push(COPY.insights.xpLine(daily.xp));
@@ -141,7 +141,7 @@ export default async function InsightsPage() {
               <li key={line}>{line}</li>
             ))}
           </ul>
-          <p className="label">{COPY.insights.summaryHeading}</p>
+          <p className="label">{COPY.insights.weekHeading}</p>
           <ul className="observation-list">
             {weekLines.map((line) => (
               <li key={line}>{line}</li>
@@ -172,7 +172,7 @@ export default async function InsightsPage() {
             <div
               className="drift-grid"
               role="img"
-              aria-label={`${COPY.insights.heatHeading}: ${heat.drifts} drift moments across ${heat.answered + heat.missed} check-ins.`}
+              aria-label={`${COPY.insights.heatHeading}: ${COPY.insights.heatAria(heat.drifts, heat.answered + heat.missed)}`}
             >
               <span />
               {Array.from({ length: 24 }, (_, hour) => (
@@ -193,7 +193,12 @@ export default async function InsightsPage() {
                           key={`${weekday}-${hour}`}
                           title={
                             cell && cell.total > 0
-                              ? COPY.insights.heatCell(label, hour, cell.drifts)
+                              ? COPY.insights.heatCell(
+                                  label,
+                                  hour,
+                                  cell.drifts - cell.missed,
+                                  cell.missed,
+                                )
                               : COPY.insights.heatEmptyCell(label, hour)
                           }
                         />
@@ -283,7 +288,7 @@ export default async function InsightsPage() {
         </h2>
         <p className="hint small">{COPY.insights.habitsLede}</p>
         {habits.length === 0 ? (
-          <p className="empty">{COPY.insights.emptyHabits}</p>
+          <p className="empty">{COPY.habits.empty}</p>
         ) : (
           <ul className="habit-insights">
             {habits.map((habit) => (
@@ -292,7 +297,7 @@ export default async function InsightsPage() {
                   <span className="task-title">{habit.name}</span>
                   <span className="task-meta">
                     {habit.status === "paused"
-                      ? `${COPY.insights.habitPaused} · `
+                      ? `${COPY.habits.pausedTag} · `
                       : ""}
                     {COPY.insights.habitStreak(habit.streak)}
                   </span>

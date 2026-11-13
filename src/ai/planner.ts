@@ -1,4 +1,5 @@
 import { CONFIG } from "../config.ts";
+import { profileName } from "../copy.ts";
 import type { PeakWindow } from "../game/insights.ts";
 import { ollamaChat, type ChatFn } from "./ollama.ts";
 import { fillPrompt, loadPrompt } from "./prompts.ts";
@@ -92,7 +93,7 @@ export async function generatePlan(
   const chat = deps.chat ?? ollamaChat;
   const system = fillPrompt(loadPrompt("planner"), {
     maxItems: String(CONFIG.ai.maxPlanItems),
-    profile: input.profile,
+    profile: profileName(input.profile),
     profileGuidance: PROFILE_GUIDANCE[input.profile] ?? PROFILE_GUIDANCE.maintenance,
     peakGuidance: peakGuidance(input.peaks ?? []),
   });

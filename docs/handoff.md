@@ -561,6 +561,20 @@ Production build, browser driven directly, isolated `NIYAM_DB` databases, Ollama
   permission-gated; `npm test` is 156/156.
 - Full details, numbers and limits: `docs/live-acceptance-2026-11-12.md`.
 
+## Voice pass (2026-11-13)
+
+Every screen and all four prompt files were read against
+`docs/voice-guide.md`. Wording only: a settings page lede of its own, a dedicated
+paused badge, interruption levels that describe the experience, one AI-off
+notice per screen, a next step in every idle and empty state, separate
+"drifted" and "unanswered" counts with matching heat-map tooltips, a habit
+schedule hint true for every frequency, and AI context that receives display
+names instead of stored slugs. `prompts/shrink.md` now matches the
+under-five-minutes rule (1–5 minutes, verb-first title) and
+`prompts/reframe.md` states the no-blame voice. Decisions are in
+`docs/decisions.md`; the guide carries the checklist. `npm test` is 156/156 and
+`npm run build` passes.
+
 ## Rules being followed
 docs/roles/builder.md: current phase only; no runtime network calls or cloud;
 tunables in config; all user-facing strings in `src/copy.ts`; update

@@ -76,7 +76,7 @@ export default async function ReframePage({
       {params.added ? <p className="notice">{COPY.reframe.accepted}</p> : null}
       {params.refreshed ? <p className="notice">{COPY.reframe.refreshed}</p> : null}
       {params.error ? <p className="notice notice-warn">{COPY.reframe.error}</p> : null}
-      {params.aiOff || !aiEnabled ? (
+      {params.aiOff ? (
         <p className="notice notice-warn">{COPY.reframe.aiOff}</p>
       ) : null}
 

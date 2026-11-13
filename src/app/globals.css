@@ -765,6 +765,11 @@ a {
   line-height: 1.5;
 }
 
+/* A helper line inside a bold field label stays body-weight. */
+.field .hint {
+  font-weight: 400;
+}
+
 .field-row {
   display: flex;
   flex-wrap: wrap;

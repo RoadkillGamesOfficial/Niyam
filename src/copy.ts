@@ -7,7 +7,7 @@ export const PRODUCT_NAME = "Niyam";
 
 export const COPY = {
   metaDescription:
-    "A local-first companion for planning the day and keeping momentum.",
+    "A quiet companion for planning the day and keeping momentum. It all stays on this laptop.",
   nav: {
     home: "Today",
     settings: "Settings",
@@ -34,6 +34,7 @@ export const COPY = {
     draftBadge: "Draft",
     runningBadge: "Running",
     closedBadge: "Closed",
+    pausedBadge: "Paused",
     closedHeading: "Day closed",
     closedLede: "That is today. Tomorrow starts from here.",
   },
@@ -74,6 +75,7 @@ export const COPY = {
     xpLabel: "XP",
     todayXp: (xp: number) => `${xp} today`,
     comboLabel: "Combo",
+    comboHint: "Grows with on-track answers. An unanswered check-in resets it.",
     integrityLabel: "Integrity",
     toNext: "to next level",
     topLevel: "Top level reached",
@@ -95,10 +97,11 @@ export const COPY = {
     quietHeading: "Quiet hours",
     quietLede: "This one waited quietly. Answer it if you like, or leave it for the morning.",
     paused: "Check-ins paused",
+    idle: "All clear. The next check-in comes on its own.",
     pause: "Pause check-ins",
     resume: "Resume check-ins",
     missedHelper: "An unanswered check-in never costs XP. It only resets the combo.",
-    quietHelper: "Quiet hours hold check-ins without counting them as missed.",
+    quietHelper: "Quiet hours keep check-ins quiet. They are never counted as unanswered.",
     driftedHeading: "Make it smaller",
     driftedLede: "Pick something easier than the whole task. Starting counts.",
     microActions: [
@@ -146,7 +149,7 @@ export const COPY = {
     emptyPast: "Nothing here yet.",
     open: "Open",
     refreshed: "A new read.",
-    aiOff: "Local AI is off. You can turn it on in Settings.",
+    aiOff: "Local AI is off. Turn it on in Settings to use it.",
     error: "That dump needs some words in it.",
     fallbackNotice: "The local model did not answer, so this is the plain version.",
     fallbackDiagnosis: "The dump is carrying more than one thing at once.",
@@ -164,14 +167,14 @@ export const COPY = {
     check: "Check the model",
     ok: "The local model answered. It is ready.",
     down: "The model did not answer. Everything still works by hand.",
-    off: "Local AI is off.",
+    off: "Local AI is off. Turn it on in Settings to use it.",
     shapeHeading: "Shaping a messy list",
     shapeHint: "Paste tasks however they come out. You see the plan before anything saves.",
     shapePlaceholder: "email Sam about the invoice, fix the leak, maybe start the report?",
     shapeButton: "Shape it",
     shapeError: "That list could not be shaped. Try again, or add tasks by hand.",
-    busy: "Working...",
-    presetToggle: "Preset steps",
+    busy: "Working…",
+    presetToggle: "Pick a preset step",
     replanned: "The rest of the day is re-ordered.",
     replanFallback: "The local model did not answer, so the current order is kept.",
     reviewHeading: "Review the plan",
@@ -196,18 +199,13 @@ export const COPY = {
     frequencies: {
       daily: "Every day",
       weekdays: "Certain weekdays",
-      every_n: "Every N days",
+      every_n: "Every few days",
       times_per_week: "Times per week",
       monthly: "Monthly",
     },
-    detail: "Detail",
-    details: {
-      daily: "Nothing needed",
-      weekdays: "Days as numbers, Sunday is 0. Try 1,3,5.",
-      every_n: "Every how many days",
-      times_per_week: "How many times",
-      monthly: "Day of the month",
-    },
+    detail: "Schedule detail",
+    detailPlaceholder: "Optional",
+    detailHint: "Only some schedules need this. Weekdays are 0–6, Sunday is 0.",
     essential: "Keep on low-energy days",
     load: "Weight",
     addButton: "Add habit",
@@ -221,13 +219,14 @@ export const COPY = {
   },
   settings: {
     heading: "Settings",
-    interval: "Check-in every (minutes)",
+    lede: "How often to check in, what the local AI may do, and where your data lives.",
+    interval: "Minutes between check-ins",
     intervalHint: "Between 5 and 240. Thirty is the default.",
     level: "Interruption style",
     levels: {
-      gentle: "Gentle — in-page notice",
-      standard: "Standard — notice and a soft chime",
-      firm: "Firm — full-screen prompt",
+      gentle: "Gentle — a quiet note on the page",
+      standard: "Standard — a note and a soft chime",
+      firm: "Firm — a full-screen check-in",
     },
     quiet: "Quiet hours",
     quietHint: "Leave either field blank to turn quiet hours off.",
@@ -238,7 +237,7 @@ export const COPY = {
     error: "That did not save. Check the values and try again.",
     dataHeading: "Your data",
     dataLede:
-      "Everything lives in one local database file. Download a snapshot whenever you want; automatic backups keep a short recent history.",
+      "Everything lives in one local database file. Download a snapshot whenever you want. Automatic backups keep a short recent history.",
     exportButton: "Download a snapshot",
     exportHint: "One .db file with all your history. Nothing leaves this laptop.",
     exportError: "The export could not be prepared. Check the data folder and try again.",
@@ -248,9 +247,8 @@ export const COPY = {
         ? `No automatic backup yet. One is written when the app opens, then at most every ${hours} hours.`
         : `${count} automatic backup${count === 1 ? "" : "s"} kept. A new one is written at most every ${hours} hours.`,
     backupLatest: (name: string) => `Newest: ${name}.`,
-    backupEmpty: "No automatic backup yet. Opening the app writes the first one.",
-    backupPolicy: (keep: number, hours: number) =>
-      `The newest ${keep} automatic backups are kept; older ones are pruned. They live in the database's backups folder, at most one every ${hours} hours.`,
+    backupPolicy: (keep: number) =>
+      `The newest ${keep} automatic backups are kept. Older ones are removed.`,
     backupNow: "Back up now",
     backedUp: "A backup snapshot was written.",
     backupError: "The backup could not be written. Check the data folder and try again.",
@@ -273,7 +271,8 @@ export const COPY = {
   insights: {
     heading: "The mirror",
     lede: "The patterns your own days have made. They are observations, not a verdict.",
-    summaryHeading: "This week",
+    summaryHeading: "The short version",
+    weekHeading: "This week",
     lastWeekHeading: "Last week",
     todayHeading: "Today",
     noData: "No history yet. A few days of check-ins will start the picture.",
@@ -284,28 +283,44 @@ export const COPY = {
     checkinsLine: (answered: number, onTrack: number) =>
       `${answered} check-ins answered today, ${onTrack} on track.`,
     noCheckins: "No check-ins answered today yet.",
-    driftLine: (drifts: number) =>
-      drifts === 1
-        ? "One moment drifted today. That is information, not a verdict."
-        : `${drifts} moments drifted today. That is information, not a verdict.`,
+    driftLine: (drifted: number, missed: number) => {
+      const parts: string[] = [];
+      if (drifted > 0) {
+        parts.push(`${drifted} moment${drifted === 1 ? "" : "s"} drifted`);
+      }
+      if (missed > 0) {
+        parts.push(`${missed} check-in${missed === 1 ? "" : "s"} went unanswered`);
+      }
+      return `${parts.join(" and ")} today. That is information, not a verdict.`;
+    },
     xpLine: (xp: number) => `${xp} XP earned today.`,
     weekLine: (days: number, tasks: number) =>
-      `${tasks} tasks finished across ${days} active days this week.`,
+      `${tasks} task${tasks === 1 ? "" : "s"} finished on ${days} ${days === 1 ? "day" : "days"} this week.`,
     lastWeekLine: (days: number, tasks: number) =>
-      `${tasks} tasks finished across ${days} active days last week.`,
+      `${tasks} task${tasks === 1 ? "" : "s"} finished on ${days} ${days === 1 ? "day" : "days"} last week.`,
     weekEmpty: "This week is still open. A single check-in starts the pattern.",
     weekConsistency: (rate: string) => `${rate} of check-ins answered this week.`,
     lastWeekConsistency: (rate: string) =>
       `${rate} of check-ins answered last week.`,
     lastWeekEmpty:
-      "No check-ins or finished tasks last week. This card starts with the first one.",
+      "No check-ins or finished tasks last week. Your next check-in starts the picture.",
     bestDay: (day: string, tasks: number) =>
       `${day} was the steadiest day, with ${tasks} tasks finished.`,
     heatHeading: "When drift shows up",
     heatLede:
-      "Darker squares are hours with more drift. Empty squares had no check-ins.",
-    heatCell: (day: string, hour: number, drifts: number) =>
-      `${day} ${String(hour).padStart(2, "0")}:00 · ${drifts} drift moment${drifts === 1 ? "" : "s"}`,
+      "Darker squares hold more drift and unanswered check-ins. Empty squares had no check-ins.",
+    heatCell: (day: string, hour: number, drifted: number, missed: number) => {
+      const parts: string[] = [];
+      if (drifted > 0) {
+        parts.push(`${drifted} drifted`);
+      }
+      if (missed > 0) {
+        parts.push(`${missed} unanswered`);
+      }
+      return `${day} ${String(hour).padStart(2, "0")}:00 · ${parts.length > 0 ? parts.join(", ") : "no drift"}`;
+    },
+    heatAria: (drifts: number, checkins: number) =>
+      `${drifts} drift moment${drifts === 1 ? "" : "s"} across ${checkins} check-in${checkins === 1 ? "" : "s"}.`,
     heatEmptyCell: (day: string, hour: number) =>
       `${day} ${String(hour).padStart(2, "0")}:00 · no check-ins`,
     weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -316,19 +331,18 @@ export const COPY = {
     profileEmpty: "No tasks under this setting yet.",
     trendsHeading: "Week by week",
     trendsLede:
-      "Consistency is the share of check-ins answered. Combo is the longest on-track run. Integrity blends the two.",
+      "Consistency is the share of check-ins answered. Combo is the longest on-track run. Integrity blends answered check-ins with finished tasks.",
     tableWeek: "Week",
     tableConsistency: "Consistency",
     tableCombo: "Longest combo",
     tableIntegrity: "Integrity",
     noValue: "—",
     habitsHeading: "Habits",
-    habitsLede: "Recent due days, with a gentle next step where one needs it.",
+    habitsLede: "How each habit has gone lately, with a gentle next step where one is slipping.",
     habitLine: (done: number, decided: number, rate: string) =>
-      `${done} of ${decided} recent due days · ${rate}`,
-    habitNoData: "No recent due days yet.",
+      `${done} of ${decided} recent days · ${rate}`,
+    habitNoData: "No recent days yet.",
     habitStreak: (days: number) => `${days} day streak`,
-    habitPaused: "Paused",
     suggestionShrink: "Try a five-minute version.",
     suggestionReschedule: "Give it a time that fits your better hours.",
     peaksHeading: "Peak windows",
@@ -347,7 +361,6 @@ export const COPY = {
     peakToggle: "Place heavy work in peak windows",
     peakHint:
       "When this is off, planning keeps its usual order and no suggested times are added.",
-    emptyHabits: "No habits yet. Add one you want to keep.",
   },
   rewards: {
     xp: (xp: number) => `+${xp} XP`,
@@ -368,3 +381,22 @@ export const COPY = {
     carry: "Still open",
   },
 };
+
+/** The display name for a stored profile slug, for prompts and AI context. */
+export function profileName(profile: string): string {
+  return COPY.home.profiles[profile as keyof typeof COPY.home.profiles] ?? profile;
+}
+
+/** The display name for a stored pulse response, for prompts and AI context. */
+export function responseName(response: string): string {
+  switch (response) {
+    case "on_track":
+      return COPY.checkin.onTrack;
+    case "pivot":
+      return COPY.checkin.pivot;
+    case "drifted":
+      return COPY.checkin.drifted;
+    default:
+      return response;
+  }
+}

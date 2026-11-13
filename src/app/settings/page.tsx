@@ -43,7 +43,7 @@ export default async function SettingsPage({
       <SiteHeader
         active="settings"
         title={COPY.settings.heading}
-        lede={COPY.settings.intervalHint}
+        lede={COPY.settings.lede}
         date={date}
         status={headerStatus?.label}
         statusState={headerStatus?.state}
@@ -87,11 +87,9 @@ export default async function SettingsPage({
         </p>
         {backup.latestName ? (
           <p className="hint small">{COPY.settings.backupLatest(backup.latestName)}</p>
-        ) : (
-          <p className="hint small">{COPY.settings.backupEmpty}</p>
-        )}
+        ) : null}
         <p className="hint small">
-          {COPY.settings.backupPolicy(backup.retain, backup.intervalHours)}
+          {COPY.settings.backupPolicy(backup.retain)}
         </p>
       </section>
 

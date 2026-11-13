@@ -22,7 +22,7 @@ Reads like someone who knows you, not like a product speaking:
 | Use | Instead of | Why |
 |---|---|---|
 | Pulse, check-in | reminder, alert, notification | one name for the thing, used the same way every time |
-| On Track, Pivot, Drifted | success, fail, bad | the three answers are states, not verdicts |
+| On track, Pivot, Drifted | success, fail, bad | the three answers are states, not verdicts |
 | unanswered | missed, skipped, failed | describes the event without judging it |
 | drift, drifted | slide, slip, lapse | neutral, and it is the product's own term |
 | micro-action | mini task, quick win | the product's vocabulary for a shrunk task |
@@ -86,6 +86,30 @@ next step where a habit is slipping; no percentage is framed as a grade.
 - Labels stay one or two words; helper lines stay under about 15 words.
 - Wording that names a *place in the code* is a smell. Say what the numbers mean
   to the user, and only mention the file when their only action is to edit it.
+
+## 2026-11-13 pass: one name per thing, on every screen
+
+- Settings has a lede about settings, not the check-in interval hint it used to
+  borrow. A paused day has its own "Paused" plaque label, not the habit tag.
+- The interruption levels describe what happens: "a quiet note on the page", "a
+  note and a soft chime", "a full-screen check-in".
+- Insights keep events apart: drifted answers and unanswered check-ins are
+  counted and named separately, in the daily note and in heat-map tooltips.
+  "across 2 active days" is now "on 2 days", and the trends legend says
+  integrity blends answered check-ins with finished tasks, which is what the
+  code does. No number is framed as a grade.
+- One message, one place: the AI-off notice appears once per screen, the
+  unanswered-check-in helper sits where the answer is chosen, and the combo
+  gauge explains the multiplier instead of repeating that helper.
+- Empty, idle and error states keep a next step: "All clear. The next check-in
+  comes on its own.", "Local AI is off. Turn it on in Settings to use it.",
+  "No recent days yet."
+- Habit schedules are asked for in plain words: "Schedule detail", placeholder
+  "Optional", and one hint that is true for every frequency.
+- Prompts are copy too: the model receives display names ("Low-energy rescue",
+  "On track"), never stored slugs, `prompts/reframe.md` states the no-blame
+  voice, and `prompts/shrink.md` matches the under-five-minutes rule (1–5
+  minutes, verb-first title).
 
 ## Open question for the owner
 

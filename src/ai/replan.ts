@@ -1,3 +1,4 @@
+import { profileName } from "../copy.ts";
 import { ollamaChat, type ChatFn } from "./ollama.ts";
 import { fillPrompt, loadPrompt } from "./prompts.ts";
 import { parseReplanOutput } from "./validate.ts";
@@ -32,7 +33,7 @@ export async function generateReplan(
     .map((item, index) => `${index}. ${item.title} (${item.minutes} min, ${item.load})`)
     .join("\n");
   const system = fillPrompt(loadPrompt("replan"), {
-    profile: input.profile,
+    profile: profileName(input.profile),
     time: input.time,
     note: input.note ? `Note from the user: ${input.note}` : "",
     items,

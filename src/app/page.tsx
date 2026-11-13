@@ -264,7 +264,7 @@ export default async function Home({
                 ) : (
                   <>
                     <p className="dialogue-text">
-                      {paused ? COPY.checkin.paused : COPY.checkin.missedHelper}
+                      {paused ? COPY.checkin.paused : COPY.checkin.idle}
                     </p>
                     <p className="dialogue-task">
                       {current ? current.title : COPY.home.noCurrent}
@@ -734,7 +734,8 @@ export default async function Home({
           </label>
           <label className="field">
             <span>{COPY.habits.detail}</span>
-            <input type="text" name="detail" placeholder={COPY.habits.details.weekdays} />
+            <input type="text" name="detail" placeholder={COPY.habits.detailPlaceholder} />
+            <span className="hint small">{COPY.habits.detailHint}</span>
           </label>
           <label className="field">
             <span>{COPY.habits.load}</span>

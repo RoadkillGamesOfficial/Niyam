@@ -60,7 +60,7 @@ export function StatsHud({
               <span className={`combo-pip${index < comboPips ? " is-lit" : ""}`} key={index} />
             ))}
           </span>
-          <p className="gauge-caption">{COPY.checkin.missedHelper}</p>
+          <p className="gauge-caption">{COPY.progress.comboHint}</p>
         </div>
       </div>
 

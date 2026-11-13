@@ -7,6 +7,7 @@ import { generateReframe } from "@/ai/reframe";
 import { generateReplan } from "@/ai/replan";
 import { generateShrink } from "@/ai/shrink";
 import { CONFIG } from "@/config";
+import { profileName, responseName } from "@/copy";
 import {
   createBrainDump,
   deleteBrainDump,
@@ -58,14 +59,14 @@ function reframeContext(
   const recent = listPulsesForDay(db, day.id)
     .filter((pulse) => pulse.status === "answered" && pulse.response)
     .slice(-3)
-    .map((pulse) => pulse.response)
+    .map((pulse) => (pulse.response ? responseName(pulse.response) : ""))
     .join(", ");
   const time = new Date().toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
   });
   return [
-    `Profile: ${day.profile ?? "maintenance"}.`,
+    `Profile: ${profileName(day.profile ?? "maintenance")}.`,
     `Current task: ${current?.title ?? "none"}.`,
     recent ? `Recent check-ins: ${recent}.` : "No check-ins answered yet.",
     `Local time: ${time}.`,

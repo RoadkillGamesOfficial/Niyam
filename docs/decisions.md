@@ -701,3 +701,48 @@ due-state surfaces), no display font is below 13px, no radius exceeds 4px and no
 shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
 folder. The existing audio behaviour and level ladder are deliberately unchanged,
 and the redesign still alters no scoring or persistence rule.
+
+## 2026-11-13 — Voice pass: one name per thing, on screen and in the prompts
+
+Decision: every route, `src/copy.ts` and the four prompt files were read against
+`docs/voice-guide.md`. The pass changed wording only, and fixed the places where
+a label meant two things, described the wrong event, or spoke in stored slugs.
+
+- The settings page has its own lede instead of reusing the check-in interval
+  hint ("Between 5 and 240..."), which described a field, not the page.
+- A paused day gets its own "Paused" plaque label instead of borrowing the habit
+  pause tag. The three interruption levels now say what the user will experience
+  ("a quiet note on the page", "a note and a soft chime", "a full-screen
+  check-in") instead of interface jargon.
+- The AI-off notice appears once per screen, and AI context passes "Low-energy
+  rescue" and "On track" instead of the stored `low_energy` and `on_track`
+  slugs, so the model reads the product's vocabulary.
+- Insights describe what happened: "moments drifted" and "check-ins went
+  unanswered" are separate counts (a missed slot is not a drifted answer), the
+  heat-map tooltip splits "drifted" from "unanswered", "across 2 active days"
+  became "on 2 days", and the trends legend says integrity blends answered
+  check-ins with finished tasks. That is what `integrityFromDays` computes; the
+  old line said it blended consistency and combo.
+- Empty, idle and failure states keep a next step: the idle check-in says the
+  next one comes on its own, AI off says to turn it on in Settings, and the
+  backup panel no longer prints its empty state twice or repeat the interval.
+- Habit "Detail" became "Schedule detail" with an "Optional" placeholder and one
+  hint that is true for every frequency. The old placeholder told every user
+  that weekdays are numbers, including when they picked "Every few days".
+- One word, one key: the insights habit list now reuses the habits empty state
+  and pause tag rather than carrying identical copies.
+- Prompt rules now match the copy: a shrink step takes under five minutes, so
+  `prompts/shrink.md` asks for 1–5 minutes and a verb-first title, and
+  `prompts/reframe.md` states the no-blame voice the diagnosis must follow.
+
+Why: the guide promises one word for one thing, and that every state says what
+happened without judging it. Those held sentence by sentence but not across
+screens, and two insight lines counted unanswered check-ins as drift, which
+contradicts the product's own "unanswered" vocabulary.
+
+What it rules out: reusing a field hint as page copy, borrowing a label from a
+different feature, duplicating an identical message or empty state under a
+second key, and letting prompt context leak stored slugs.
+
+Verification: `npm test` 156/156 and `npm run build` pass. No route, action,
+schema or scoring behaviour changed.
