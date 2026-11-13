@@ -537,6 +537,12 @@ if (!app.requestSingleInstanceLock()) {
     installPermissionHandlers();
     tray = createTray({ onOpen: showWindow, onQuit: () => app.quit() });
     console.log(`tray created (grace ${Math.round(GRACE_MS / 1000)}s)`);
+    if (process.env.NIYAM_DEBUG_TRAY === "1") {
+      // Spike hook for desktop/spike/tray-quit.mjs: hands the live tray (and the
+      // menu it shows) to the inspector so the real Quit item can be driven.
+      globalThis.__niyamTray = tray;
+      console.log(`tray icon ${JSON.stringify(tray.iconSize)} empty=${tray.iconEmpty}`);
+    }
     void startServer();
   });
 
@@ -550,12 +556,18 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on("before-quit", () => {
     quitting = true;
+    console.log(`quit requested (grace ${graceTimer ? "armed" : "idle"})`);
     clearRestartTimer();
-    clearGraceTimer();
+    if (graceTimer) {
+      clearGraceTimer();
+      grace.disarm();
+      console.log("grace timer cleared");
+    }
     stopHealthWatch();
     if (tray) {
       tray.destroy();
       tray = null;
+      console.log("tray removed");
     }
     const child = server;
     server = null;
@@ -563,6 +575,7 @@ if (!app.requestSingleInstanceLock()) {
       child.expectedExit = true;
       try {
         child.kill();
+        console.log("server child stopped");
       } catch {
         // already gone
       }
