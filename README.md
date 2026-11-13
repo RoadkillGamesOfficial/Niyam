@@ -37,8 +37,15 @@ and Quit when it cannot come up. Permissions are granted only to notifications
 and fullscreen from the app's own origin, and a second launch raises the
 existing window instead of starting a second server.
 
-Closing the window still quits. The tray, start with Windows and the background
-check-in come in the next phases, so this is not yet an installed product.
+Closing the window hides it: the app stays in the tray and the server keeps
+running for two minutes before it stops, so reopening within that window is
+instant and reopening later restarts it. **Quit** in the tray menu is the only
+way to end the process. The first close says so once, in a notification.
+
+A hidden app costs more than it looks: about 255-319 MB working set, because
+Chromium keeps its GPU and utility processes for the life of the app. Start with
+Windows and the background check-in come in the next phases, so this is not yet
+an installed product.
 
 ## Where the data lives
 
