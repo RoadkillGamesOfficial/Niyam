@@ -1,7 +1,13 @@
 # Desktop phase 4 — the background check-in
 
-Status: **plan, blocked on four decisions** (Q1–Q4 at the end). Nothing in this
-document is implemented; the only shipped desktop code is phases 1–3.
+Status: **implemented**. The four questions at the end were answered as
+recommended (resident Electron, task-named reminder with tray snooze, autostart
+on in packaged builds, two minutes of grace), and `docs/decisions.md` records
+the result.
+
+One change from this plan as written: `src/db/pulse-tick.ts` was not needed.
+`reconcileCheckins` already does the work, so the tick is a thin bridge in
+`desktop/reminder-db.js` that calls it.
 
 ## Goal
 

@@ -43,10 +43,16 @@ instant and reopening later restarts it. **Quit** in the tray menu is the only
 way to end the process. The first close says so once, in a notification.
 
 A hidden app costs more than it looks: about 255-319 MB working set, because
-Chromium keeps its GPU and utility processes for the life of the app. Start with
-Windows and the background check-in come in the next phases, so this is not yet
-an installed product. The phase 4 plan, including the footprint trade-off it has
-to settle, is in `docs/desktop-phase-4-background-check-in.md`.
+Chromium keeps its GPU and utility processes for the life of the app.
+
+While it is hidden it still checks the schedule. When a check-in comes due the
+app posts a notification naming the task that is open ("Still on ...?"), at the
+level chosen in Settings: gentle stays in-app, standard notifies once, firm
+repeats. Quiet hours record the prompt without a sound. The tray's **Snooze for
+an hour** silences them, and the server stays down while the window is closed:
+the reminder only reads and writes the database. A packaged build starts with
+Windows; development never does. The plan and the footprint trade-off it accepts
+are in `docs/desktop-phase-4-background-check-in.md`.
 
 `desktop/spike/tray-quit.mjs` drives the tray's Quit item in a running app
 (launch with `NIYAM_DEBUG_TRAY=1` and `--inspect=9229`); it is how the only exit

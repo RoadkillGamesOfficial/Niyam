@@ -702,6 +702,39 @@ shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
 folder. The existing audio behaviour and level ladder are deliberately unchanged,
 and the redesign still alters no scoring or persistence rule.
 
+## 2026-11-13 — Desktop phase 4: a check-in that arrives on its own
+
+The four questions the plan asked were answered as recommended: resident
+Electron, the open task named in the reminder with snooze in the tray, autostart
+on in the installed build and untouched in development, and the two-minute grace
+unchanged.
+
+- **Resident Electron, reminders without the server.** The loop runs in the main
+  process and calls the app's own `reconcileCheckins`, so a hidden app writes the
+  same rows an open one would (Electron's Node loads the `.ts` modules directly).
+  The server still stops two minutes after the window closes: a reminder needs a
+  database read and one insert, not a Next server.
+- **The window always wins.** While a window is open the loop does nothing; the
+  page's own prompt is the only voice. The loop starts only once a window exists,
+  which a live check caught: the first version started with the app and toasted
+  just before the window appeared.
+- **Levels keep their meaning.** Gentle never notifies, standard notifies once per
+  slot, firm repeats every five minutes up to three times, and quiet hours record a
+  quiet prompt with no sound.
+- **Snooze is a tray item** ("Snooze for an hour" / "Resume reminders"), stored in
+  `desktop-state.json` so a restart remembers it.
+- **Autostart registers only in a packaged build**; development never registers
+  Electron itself. Turning it off today is Windows' own Startup Apps panel — the
+  in-app switch needs a bridge from the settings page to the shell, so it belongs
+  to the installer phase, not this one.
+- **Footprint**: phase 3's 255–319 MB stands. The loop adds a short-lived SQLite
+  connection once a minute, not a process. The agent option is still the only route
+  to the original target and is still unscheduled.
+
+The plan's `src/db/pulse-tick.ts` was dropped: `reconcileCheckins` already did the
+work, so the tick is a thin bridge (`desktop/reminder-db.js`) instead of a second
+implementation of the schedule.
+
 ## 2026-11-13 — Tray Quit is driven, not assumed
 
 Quit is the only way out of the desktop app, so it is now exercised the way a
