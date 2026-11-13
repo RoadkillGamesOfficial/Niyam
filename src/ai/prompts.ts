@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { appRoot } from "../app-root.ts";
 
 // Prompts live in prompts/*.md, not in code, so the voice writer can revise them
 // without touching logic (docs/roles/voice-writer.md). They are read once per
@@ -13,7 +14,7 @@ export function loadPrompt(name: PromptName): string {
   if (cached) {
     return cached;
   }
-  const prompt = readFileSync(join(process.cwd(), "prompts", `${name}.md`), "utf8");
+  const prompt = readFileSync(join(appRoot(), "prompts", `${name}.md`), "utf8");
   cache.set(name, prompt);
   return prompt;
 }

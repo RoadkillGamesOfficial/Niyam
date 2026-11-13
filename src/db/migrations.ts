@@ -1,11 +1,15 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
+import { appRoot } from "../app-root.ts";
 
 // Migrations are plain .sql files, applied in filename order (001_, 002_, ...).
 // Each one is recorded by filename in schema_migrations, so it runs exactly once.
 // Nothing here ever edits or deletes existing data: new work goes in a new file.
-const MIGRATIONS_DIR = join(process.cwd(), "migrations");
+// Resolved per call so the app root can be set from the environment.
+function migrationsDir(): string {
+  return join(appRoot(), "migrations");
+}
 
 const CREATE_MIGRATIONS_TABLE = `
   CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -29,13 +33,14 @@ export function appliedMigrations(db: DatabaseSync): string[] {
  */
 export function runMigrations(db: DatabaseSync): string[] {
   const applied = new Set(appliedMigrations(db));
-  const pending = readdirSync(MIGRATIONS_DIR)
+  const directory = migrationsDir();
+  const pending = readdirSync(directory)
     .filter((filename) => filename.endsWith(".sql"))
     .sort()
     .filter((filename) => !applied.has(filename));
 
   for (const filename of pending) {
-    const sql = readFileSync(join(MIGRATIONS_DIR, filename), "utf8");
+    const sql = readFileSync(join(directory, filename), "utf8");
     db.exec("BEGIN");
     try {
       db.exec(sql);
