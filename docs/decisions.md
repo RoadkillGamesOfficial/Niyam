@@ -702,6 +702,23 @@ shadow has blur. Screenshots are in the ignored `data/redesign-shots/cdp`
 folder. The existing audio behaviour and level ladder are deliberately unchanged,
 and the redesign still alters no scoring or persistence rule.
 
+## 2026-11-13 — A fresh install starts at full integrity
+
+A new install showed **22%** integrity, which was an accident of arithmetic rather
+than a decision: with no history, every day in the fourteen-day window is idle, so
+the neutral 0.5 baseline was decayed fourteen times at 4% and landed just above
+the 0.2 floor.
+
+The rule now says what the mechanic means: **a window with no active day at all
+reads 1.0**. Idle decay still applies after the first real day, so a genuine gap
+still lowers the meter, and coming back still recovers it immediately. A new user
+no longer opens the app to a health bar that judges them before they have done
+anything.
+
+Verified against an empty database (`getPlayerState().integrity` is 100%) and in
+the rules suite, which gains a case for the empty window and keeps the decay and
+floor cases unchanged.
+
 ## 2026-11-13 — Desktop phase 5: Niyam installs per user
 
 The installer is real: `desktop/dist/Niyam Setup 0.1.0.exe` (121 MB, unsigned),

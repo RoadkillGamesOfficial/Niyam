@@ -123,6 +123,11 @@ describe("system integrity", () => {
     assert.equal(score, 1);
   });
 
+  it("reads full on a fresh install, which has no history to be steady about", () => {
+    assert.equal(integrityFromDays([]), 1);
+    assert.equal(integrityFromDays([idle, idle, idle]), 1);
+  });
+
   it("decays across idle days but never dies", () => {
     const strong = { answered: 8, missed: 0, tasksDone: 4, tasksPlanned: 4 };
     const score = integrityFromDays([strong, idle, idle]);

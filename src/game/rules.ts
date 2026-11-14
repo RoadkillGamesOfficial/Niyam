@@ -89,6 +89,13 @@ export function integrityFromDays(days: DayScore[]): number {
     }
   }
 
+  // Nothing has happened in the window at all: a fresh install has no history to
+  // be consistent about, so it reads full instead of as two idle weeks. Idle
+  // decay only means something after the first real day.
+  if (scores.length === 0) {
+    return 1;
+  }
+
   // Only a stretch of idle days at the *end* decays the meter: coming back and
   // engaging must recover it immediately, which is the point of the mechanic.
   let idleRun = 0;
